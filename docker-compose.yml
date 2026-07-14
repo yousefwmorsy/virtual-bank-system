@@ -1,0 +1,35 @@
+services:
+  user-db:
+    image: postgres
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: user_user
+      POSTGRES_PASSWORD: user_pass
+    volumes: ["user_pgdata:/var/lib/postgresql"]
+
+  account-db:
+    image: postgres
+    environment:
+      POSTGRES_DB: account_db
+      POSTGRES_USER: account_user
+      POSTGRES_PASSWORD: account_pass
+    volumes: ["account_pgdata:/var/lib/postgresql"]
+
+  transaction-db:
+    image: postgres
+    environment:
+      POSTGRES_DB: transaction_db
+      POSTGRES_USER: transaction_user
+      POSTGRES_PASSWORD: transaction_pass
+    volumes: ["transaction_pgdata:/var/lib/postgresql"]
+
+  account-service:
+    build: ./services/account-service
+    depends_on: [account-db]
+    ports: ["8081:8080"]
+
+
+volumes:
+  user_pgdata:
+  account_pgdata:
+  transaction_pgdata:
