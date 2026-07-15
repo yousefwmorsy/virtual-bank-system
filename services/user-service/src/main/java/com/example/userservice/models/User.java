@@ -20,9 +20,8 @@ public class User {
     private UUID id;
 
 
-    @Column(nullable = false)
+    @Column(nullable = false,unique = true)
     private String name;
-
 
 
     @Column(nullable = false, name = "password_hash")
