@@ -1,9 +1,7 @@
 package com.ejadainternship.vbank.account_service.models;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -12,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@Builder
+@RequiredArgsConstructor
 @Entity
 public class Account {
     @Id
