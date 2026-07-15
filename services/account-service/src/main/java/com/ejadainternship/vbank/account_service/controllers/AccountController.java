@@ -14,7 +14,7 @@ public class AccountController {
 
     @PutMapping("/transfer")
     public MessageDTO transferAmount(@RequestBody TransferRequestDTO transferRequestDTO) {
-        return null;
+        return accountService.transferAmount(transferRequestDTO);
     }
 
     @GetMapping("/{account-id}")
