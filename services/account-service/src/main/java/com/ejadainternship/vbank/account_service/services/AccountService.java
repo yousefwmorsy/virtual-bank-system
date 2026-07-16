@@ -21,10 +21,16 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final AccountNumberGenerationService accountNumberGenerationService;
 
+    public Account getAccountById(String accountId) {
+        return accountRepository.findById(accountId).orElseThrow(
+                () -> new AccountDoesNotExistException(accountId)
+        );
+    }
+
     @Transactional
     public MessageDTO transferAmount(TransferRequestDTO transferRequestDTO) {
-        Account fromAccount = accountRepository.findById(transferRequestDTO.fromAccountId()).orElseThrow(AccountDoesNotExistException::new);
-        Account toAccount = accountRepository.findById(transferRequestDTO.toAccountId()).orElseThrow(AccountDoesNotExistException::new);
+        Account fromAccount = getAccountById(transferRequestDTO.fromAccountId());
+        Account toAccount = getAccountById(transferRequestDTO.toAccountId());
         if (fromAccount.getBalance().compareTo(transferRequestDTO.amount()) < 0) {
             throw new InsufficientBalanceException();
         }
@@ -41,7 +47,7 @@ public class AccountService {
 
     public AccountDetailsDTO getAccount(String accountId) {
         return AccountMapper.toAccountDetailsDTO(
-                accountRepository.findById(accountId).orElseThrow(AccountDoesNotExistException::new)
+                getAccountById(accountId)
         );
     }
 
@@ -51,7 +57,7 @@ public class AccountService {
                     .userId(accountRequestDTO.userId())
                     .accountNumber(accountNumber)
                     .balance(accountRequestDTO.initialBalance())
-                    .accountType(AccountType.valueOf(accountRequestDTO.accountType()))
+                    .accountType(accountRequestDTO.accountType())
                     .lastTransactionDate(LocalDateTime.now())
                     .status(AccountStatus.ACTIVE)
                     .build();
