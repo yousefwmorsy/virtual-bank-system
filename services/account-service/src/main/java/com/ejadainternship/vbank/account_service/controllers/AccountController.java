@@ -1,8 +1,8 @@
 package com.ejadainternship.vbank.account_service.controllers;
 
 import com.ejadainternship.vbank.account_service.dtos.*;
-import com.ejadainternship.vbank.account_service.models.Account;
 import com.ejadainternship.vbank.account_service.services.AccountService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +13,7 @@ public class AccountController {
     private final AccountService accountService;
 
     @PutMapping("/transfer")
-    public MessageDTO transferAmount(@RequestBody TransferRequestDTO transferRequestDTO) {
+    public MessageDTO transferAmount(@Valid @RequestBody TransferRequestDTO transferRequestDTO) {
         return accountService.transferAmount(transferRequestDTO);
     }
 
@@ -23,7 +23,7 @@ public class AccountController {
     }
 
     @PostMapping
-    public AccountSummaryDTO createAccount(@RequestBody CreateAccountRequestDTO accountRequestDTO) {
+    public AccountSummaryDTO createAccount(@Valid @RequestBody CreateAccountRequestDTO accountRequestDTO) {
         return accountService.createAccount(accountRequestDTO);
     }
 }
