@@ -19,11 +19,11 @@ public class AccountController {
 
     @GetMapping("/{account-id}")
     public AccountDetailsDTO getAccount(@PathVariable("account-id") String accountId) {
-        return null;
+        return accountService.getAccount(accountId);
     }
 
     @PostMapping
-    public AccountSummaryDTO createAccount(@RequestBody CreateAccountRequestDTO account) {
-        return null;
+    public AccountSummaryDTO createAccount(@RequestBody CreateAccountRequestDTO accountRequestDTO) {
+        return accountService.createAccount(accountRequestDTO);
     }
 }

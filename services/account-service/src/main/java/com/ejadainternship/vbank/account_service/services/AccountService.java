@@ -1,23 +1,25 @@
 package com.ejadainternship.vbank.account_service.services;
 
-import com.ejadainternship.vbank.account_service.dtos.AccountDetailsDTO;
-import com.ejadainternship.vbank.account_service.dtos.MessageDTO;
-import com.ejadainternship.vbank.account_service.dtos.TransferRequestDTO;
+import com.ejadainternship.vbank.account_service.dtos.*;
 import com.ejadainternship.vbank.account_service.exceptions.AccountDoesNotExistException;
 import com.ejadainternship.vbank.account_service.exceptions.InsufficientBalanceException;
 import com.ejadainternship.vbank.account_service.mapper.AccountMapper;
 import com.ejadainternship.vbank.account_service.models.Account;
+import com.ejadainternship.vbank.account_service.models.AccountStatus;
+import com.ejadainternship.vbank.account_service.models.AccountType;
 import com.ejadainternship.vbank.account_service.repositories.AccountRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class AccountService {
     private final AccountRepository accountRepository;
+    private final AccountNumberGenerationService accountNumberGenerationService;
 
     @Transactional
     public MessageDTO transferAmount(TransferRequestDTO transferRequestDTO) {
@@ -37,5 +39,23 @@ public class AccountService {
         return accountRepository.findAllByUserId(userId).stream().map(AccountMapper::toAccountDetailsDTO).toList();
     }
 
+    public AccountDetailsDTO getAccount(String accountId) {
+        return AccountMapper.toAccountDetailsDTO(
+                accountRepository.findById(accountId).orElseThrow(AccountDoesNotExistException::new)
+        );
+    }
 
+    public AccountSummaryDTO createAccount(CreateAccountRequestDTO accountRequestDTO) {
+        String accountNumber = accountNumberGenerationService.generate();
+        Account newAccount = Account.builder()
+                    .userId(accountRequestDTO.userId())
+                    .accountNumber(accountNumber)
+                    .balance(accountRequestDTO.initialBalance())
+                    .accountType(AccountType.valueOf(accountRequestDTO.accountType()))
+                    .lastTransactionDate(LocalDateTime.now())
+                    .status(AccountStatus.ACTIVE)
+                    .build();
+        accountRepository.save(newAccount);
+        return AccountMapper.toAccountSummaryDTO(newAccount);
+    }
 }
