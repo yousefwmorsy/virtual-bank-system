@@ -6,7 +6,6 @@ import com.ejadainternship.vbank.account_service.exceptions.InsufficientBalanceE
 import com.ejadainternship.vbank.account_service.mapper.AccountMapper;
 import com.ejadainternship.vbank.account_service.models.Account;
 import com.ejadainternship.vbank.account_service.models.AccountStatus;
-import com.ejadainternship.vbank.account_service.models.AccountType;
 import com.ejadainternship.vbank.account_service.repositories.AccountRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
