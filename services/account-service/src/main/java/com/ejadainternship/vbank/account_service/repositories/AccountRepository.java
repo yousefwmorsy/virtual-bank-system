@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, String> {
     public List<Account> findAllByUserId(String userId);
+    public boolean existsByAccountNumber(String accountNumber);
+
 }
