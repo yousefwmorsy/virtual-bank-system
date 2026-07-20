@@ -3,6 +3,7 @@ package com.ejadainternship.vbank.account_service.services;
 import com.ejadainternship.vbank.account_service.dtos.*;
 import com.ejadainternship.vbank.account_service.exceptions.AccountDoesNotExistException;
 import com.ejadainternship.vbank.account_service.exceptions.InsufficientBalanceException;
+import com.ejadainternship.vbank.account_service.exceptions.UserDoesNotExistException;
 import com.ejadainternship.vbank.account_service.mapper.AccountMapper;
 import com.ejadainternship.vbank.account_service.models.Account;
 import com.ejadainternship.vbank.account_service.models.AccountStatus;
@@ -19,6 +20,7 @@ import java.util.List;
 public class AccountService {
     private final AccountRepository accountRepository;
     private final AccountNumberGenerationService accountNumberGenerationService;
+    private final UserService userService;
 
     public Account getAccountById(String accountId) {
         return accountRepository.findById(accountId).orElseThrow(
@@ -51,8 +53,9 @@ public class AccountService {
     }
 
     public AccountSummaryDTO createAccount(CreateAccountRequestDTO accountRequestDTO) {
-        String accountNumber = accountNumberGenerationService.generate();
-        Account newAccount = Account.builder()
+        if (userService.verifyUser(accountRequestDTO.userId())) {
+            String accountNumber = accountNumberGenerationService.generate();
+            Account newAccount = Account.builder()
                     .userId(accountRequestDTO.userId())
                     .accountNumber(accountNumber)
                     .balance(accountRequestDTO.initialBalance())
@@ -60,7 +63,10 @@ public class AccountService {
                     .lastTransactionDate(LocalDateTime.now())
                     .status(AccountStatus.ACTIVE)
                     .build();
-        accountRepository.save(newAccount);
-        return AccountMapper.toAccountSummaryDTO(newAccount);
+            accountRepository.save(newAccount);
+            return AccountMapper.toAccountSummaryDTO(newAccount);
+        } else {
+            throw new UserDoesNotExistException(accountRequestDTO.userId());
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.ejadainternship.vbank.account_service.handler;
 import com.ejadainternship.vbank.account_service.dtos.ErrorResponseDTO;
 import com.ejadainternship.vbank.account_service.exceptions.AccountDoesNotExistException;
 import com.ejadainternship.vbank.account_service.exceptions.InsufficientBalanceException;
+import com.ejadainternship.vbank.account_service.exceptions.UserDoesNotExistException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
     @ExceptionHandler(AccountDoesNotExistException.class)
     public ResponseEntity<ErrorResponseDTO> handleAccountDoesNotExistException(AccountDoesNotExistException e) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        return ResponseEntity.status(status).body(
+                new ErrorResponseDTO(status.value(), status.getReasonPhrase(), e.getMessage())
+        );
+    }
+
+    @ExceptionHandler(UserDoesNotExistException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUserDoesNotExistException(UserDoesNotExistException e) {
         HttpStatus status = HttpStatus.NOT_FOUND;
         return ResponseEntity.status(status).body(
                 new ErrorResponseDTO(status.value(), status.getReasonPhrase(), e.getMessage())
