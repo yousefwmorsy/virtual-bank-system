@@ -79,5 +79,62 @@ public class AccountServiceTest {
         verify(accountRepository).findById(accountId);
     }
 
+    @Test
+    @DisplayName("Should transfer amount successfully between two accounts")
+    void transferAmount_Successfully() {
+        Account fromAccount = createActiveAccount("from-1", "user-1", BigDecimal.valueOf(500));
+        Account toAccount = createActiveAccount("to-1", "user-2", BigDecimal.valueOf(200));
+        TransferRequestDTO request = new TransferRequestDTO("from-1", "to-1", BigDecimal.valueOf(100));
 
+        when(accountRepository.findById("from-1")).thenReturn(Optional.of(fromAccount));
+        when(accountRepository.findById("to-1")).thenReturn(Optional.of(toAccount));
+
+        MessageDTO result = accountService.transferAmount(request);
+
+        assertEquals("Account updated successfully", result.message());
+        assertEquals(BigDecimal.valueOf(400), fromAccount.getBalance());
+        assertEquals(BigDecimal.valueOf(300), toAccount.getBalance());
+        verify(accountRepository).save(fromAccount);
+        verify(accountRepository).save(toAccount);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when from-account has insufficient balance")
+    void transferAmount_InsufficientBalance() {
+        Account fromAccount = createActiveAccount("from-1", "user-1", BigDecimal.valueOf(50));
+        Account toAccount = createActiveAccount("to-1", "user-2", BigDecimal.valueOf(200));
+        TransferRequestDTO request = new TransferRequestDTO("from-1", "to-1", BigDecimal.valueOf(100));
+
+        when(accountRepository.findById("from-1")).thenReturn(Optional.of(fromAccount));
+        when(accountRepository.findById("to-1")).thenReturn(Optional.of(toAccount));
+
+        assertThrows(InsufficientBalanceException.class, () -> accountService.transferAmount(request));
+
+        assertEquals(BigDecimal.valueOf(50), fromAccount.getBalance());
+        assertEquals(BigDecimal.valueOf(200), toAccount.getBalance());
+        verify(accountRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when from-account does not exist")
+    void transferAmount_FromAccountNotFound() {
+        TransferRequestDTO request = new TransferRequestDTO("non-existent", "to-1", BigDecimal.valueOf(100));
+        when(accountRepository.findById("non-existent")).thenReturn(Optional.empty());
+
+        assertThrows(AccountDoesNotExistException.class, () -> accountService.transferAmount(request));
+        verify(accountRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when to-account does not exist")
+    void transferAmount_ToAccountNotFound() {
+        Account fromAccount = createActiveAccount("from-1", "user-1", BigDecimal.valueOf(500));
+        TransferRequestDTO request = new TransferRequestDTO("from-1", "non-existent", BigDecimal.valueOf(100));
+
+        when(accountRepository.findById("from-1")).thenReturn(Optional.of(fromAccount));
+        when(accountRepository.findById("non-existent")).thenReturn(Optional.empty());
+
+        assertThrows(AccountDoesNotExistException.class, () -> accountService.transferAmount(request));
+        verify(accountRepository, never()).save(any());
+    }
 }
