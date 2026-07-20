@@ -45,4 +45,39 @@ public class AccountServiceTest {
                 .lastTransactionDate(LocalDateTime.now())
                 .build();
     }
+
+
+    @Test
+    @DisplayName("Should return account when ID exists")
+    void getAccountById_Exists() {
+        String accountId = "Hello";
+        String userId = "user-1";
+        BigDecimal balance = BigDecimal.valueOf(100);
+
+        Account expectedAccount = createActiveAccount(accountId, userId, balance);
+        when(accountRepository.findById(accountId)).thenReturn(Optional.of(expectedAccount));
+
+        Account result = accountService.getAccountById(accountId);
+        assertNotNull(result);
+        assertEquals(accountId, result.getId());
+        assertEquals(balance, result.getBalance());
+        verify(accountRepository).findById(accountId);
+    }
+
+    @Test
+    @DisplayName("Should return error message when account ID does not exist")
+    void getAccountById_DoesNotExist() {
+        String accountId = "DoesNotExist";
+
+        when(accountRepository.findById(accountId)).thenReturn(Optional.empty());
+
+        AccountDoesNotExistException exception = assertThrows(
+                AccountDoesNotExistException.class,
+                () -> accountService.getAccountById(accountId)
+        );
+        assertTrue(exception.getMessage().contains(accountId));
+        verify(accountRepository).findById(accountId);
+    }
+
+
 }
