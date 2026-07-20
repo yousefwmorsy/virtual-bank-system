@@ -193,5 +193,46 @@ public class AccountServiceTest {
         assertThrows(AccountDoesNotExistException.class, () -> accountService.getAccount(accountId));
     }
 
+    @Test
+    @DisplayName("Should create account successfully")
+    void createAccount_Successful() {
+        CreateAccountRequestDTO request = new CreateAccountRequestDTO(
+                "user-1",
+                AccountType.SAVINGS,
+                BigDecimal.valueOf(500)
+        );
+        String generatedNumber = "9876543210";
+        when(accountNumberGenerationService.generate()).thenReturn(generatedNumber);
 
+        ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
+        when(accountRepository.save(accountCaptor.capture())).thenAnswer(invocation -> {
+            Account saved = invocation.getArgument(0);
+            saved.setId("generated-id-123");
+            return saved;
+        });
+
+        AccountSummaryDTO result = accountService.createAccount(request);
+
+        assertNotNull(result);
+        assertEquals("generated-id-123", result.accountId());
+        assertEquals(generatedNumber, result.accountNumber());
+        assertEquals("Account created successfully", result.message());
+
+        Account capturedAccount = accountCaptor.getValue();
+        assertEquals("user-1", capturedAccount.getUserId());
+        assertEquals(generatedNumber, capturedAccount.getAccountNumber());
+        assertEquals(BigDecimal.valueOf(500), capturedAccount.getBalance());
+        assertEquals(AccountType.SAVINGS, capturedAccount.getAccountType());
+        assertEquals(AccountStatus.ACTIVE, capturedAccount.getStatus());
+        assertNotNull(capturedAccount.getLastTransactionDate());
+
+        verify(accountNumberGenerationService).generate();
+        verify(accountRepository).save(any(Account.class));
+    }
+
+    @Test
+    @DisplayName("Should fail to create account")
+    void createAccount_Unsuccessful() {
+        // TODO: Implement account creation unsuccessful test (user does not exist / invalid balance)
+    }
 }
