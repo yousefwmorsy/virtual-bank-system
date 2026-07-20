@@ -137,4 +137,61 @@ public class AccountServiceTest {
         assertThrows(AccountDoesNotExistException.class, () -> accountService.transferAmount(request));
         verify(accountRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("Should return list of accounts for user")
+    void getAccounts_UserHasAccounts() {
+        String userId = "user-1";
+        Account account1 = createActiveAccount("id-1", userId, BigDecimal.valueOf(100));
+        Account account2 = createActiveAccount("id-2", userId, BigDecimal.valueOf(200));
+        when(accountRepository.findAllByUserId(userId)).thenReturn(List.of(account1, account2));
+
+        List<AccountDetailsDTO> result = accountService.getAccounts(userId);
+
+        assertEquals(2, result.size());
+        assertEquals("id-1", result.get(0).accountId());
+        assertEquals("id-2", result.get(1).accountId());
+        assertEquals(BigDecimal.valueOf(100), result.get(0).balance());
+        verify(accountRepository).findAllByUserId(userId);
+    }
+
+    @Test
+    @DisplayName("Should return empty list when user has no accounts")
+    void getAccounts_UserHasNoAccounts() {
+        String userId = "user-with-no-accounts";
+        when(accountRepository.findAllByUserId(userId)).thenReturn(List.of());
+
+        List<AccountDetailsDTO> result = accountService.getAccounts(userId);
+
+        assertTrue(result.isEmpty());
+        verify(accountRepository).findAllByUserId(userId);
+    }
+
+    @Test
+    @DisplayName("Should return AccountDetailsDTO when account exists")
+    void getAccount_AccountExists() {
+        String accountId = "account-123";
+        Account account = createActiveAccount(accountId, "user-1", BigDecimal.valueOf(1000));
+        when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
+
+        AccountDetailsDTO result = accountService.getAccount(accountId);
+
+        assertNotNull(result);
+        assertEquals(accountId, result.accountId());
+        assertEquals(account.getAccountNumber(), result.accountNumber());
+        assertEquals(account.getBalance(), result.balance());
+        assertEquals(AccountStatus.ACTIVE.toString(), result.status());
+        assertEquals(AccountType.CHECKING.toString(), result.accountType());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when getting DTO for non-existent account")
+    void getAccount_AccountDoesNotExist() {
+        String accountId = "non-existent";
+        when(accountRepository.findById(accountId)).thenReturn(Optional.empty());
+
+        assertThrows(AccountDoesNotExistException.class, () -> accountService.getAccount(accountId));
+    }
+
+
 }
