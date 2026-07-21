@@ -6,6 +6,7 @@ services:
       POSTGRES_USER: user_user
       POSTGRES_PASSWORD: user_pass
     volumes: ["user_pgdata:/var/lib/postgresql"]
+    ports: ["5051:5432"]
 
   account-db:
     image: postgres
@@ -14,6 +15,7 @@ services:
       POSTGRES_USER: account_user
       POSTGRES_PASSWORD: account_pass
     volumes: ["account_pgdata:/var/lib/postgresql"]
+    ports: ["5050:5432"]
 
   transaction-db:
     image: postgres
@@ -23,10 +25,20 @@ services:
       POSTGRES_PASSWORD: transaction_pass
     volumes: ["transaction_pgdata:/var/lib/postgresql"]
 
+  service-registry:
+    build: ./services/service-registry
+    ports: [ "8761:8761" ]
+
   account-service:
     build: ./services/account-service
-    depends_on: [account-db]
+    depends_on: [account-db, service-registry]
     ports: ["8081:8080"]
+
+  user-service:
+    build: ./services/user-service
+    depends_on: [user-db, service-registry]
+    ports: ["8082:8080"]
+
 
 
 volumes:
