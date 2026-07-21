@@ -13,3 +13,10 @@ spring:
 account:
   number-generation-service:
     max-attempts: 10
+
+eureka:
+  instance:
+    hostname: account-service
+  client:
+    service-url:
+      defaultZone: http://service-registry:8761/eureka/
