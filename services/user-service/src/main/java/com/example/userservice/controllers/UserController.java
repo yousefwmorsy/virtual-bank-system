@@ -2,6 +2,7 @@ package com.example.userservice.controllers;
 
 
 import com.example.userservice.dtos.*;
+import com.example.userservice.models.User;
 import com.example.userservice.services.UserService;
 import jakarta.validation.Valid;
 import lombok.Data;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Data
 public class UserController {
     final private UserService userService;
+
 
     @PostMapping("/register")
     public ResponseEntity<UserRegisterResponse> registerUser(@Valid @RequestBody UserRegister userRegister){
@@ -33,6 +35,7 @@ public class UserController {
         var profile = userService.getProfile(userId);
         return ResponseEntity.ok(profile);
     }
+
 
 
 
