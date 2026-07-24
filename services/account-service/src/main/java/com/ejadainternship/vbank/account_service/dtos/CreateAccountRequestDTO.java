@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 public record CreateAccountRequestDTO(
         @NotBlank String userId,
-        @NotBlank AccountType accountType,
+        AccountType accountType,
         @PositiveOrZero BigDecimal initialBalance
         ) {
 }
