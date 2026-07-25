@@ -1,5 +1,6 @@
 package com.example.transactionservice.entities;
 
+import com.example.transactionservice.enums.Status;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -26,6 +27,8 @@ public class Transaction {
     private BigDecimal amount;
 
     private String description;
+
+    private Status status = Status.INITIATED;
 
     @CreationTimestamp
     @Column(updatable = false)

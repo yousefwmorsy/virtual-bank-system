@@ -1,17 +1,17 @@
 package com.example.transactionservice.controllers;
 
+import com.example.transactionservice.dtos.ExecutionRequest;
+import com.example.transactionservice.dtos.ExecutionResponse;
 import com.example.transactionservice.dtos.InitiateTransactionRequest;
 import com.example.transactionservice.dtos.initiateTransactionResponse;
 import com.example.transactionservice.services.TransactionService;
 import jakarta.validation.Valid;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-@RestController("/transactions")
+@RestController
+@RequestMapping("/transactions")
 @Data
 public class TransactionController {
 
@@ -22,6 +22,14 @@ public class TransactionController {
         initiateTransactionResponse response = transactionService.initiateTransaction(initiateTransactionRequest);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/transfer/execution")
+    public ResponseEntity<?> executeTransaction(@Valid @RequestBody ExecutionRequest executionRequest){
+        ExecutionResponse response = transactionService.executeTransaction(executionRequest);
+        return ResponseEntity.ok(response);
+    }
+
+
 
 
 
