@@ -51,7 +51,7 @@ public class TransactionService {
     }
 
     public ExecutionResponse executeTransaction(ExecutionRequest executionRequest){
-              String url = BASE_URL + "/accounts";
+        String url = BASE_URL + "/accounts/transfer";
 
         Transaction transaction = transactionRepository.findById(executionRequest.getTransactionId())
                 .orElseThrow(() -> new TransactionDoesNotExistException(executionRequest.getTransactionId().toString()));

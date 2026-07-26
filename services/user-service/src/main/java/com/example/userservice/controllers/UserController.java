@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController("/users")
+@RequestMapping("/users")
 @Data
 public class UserController {
     final private UserService userService;

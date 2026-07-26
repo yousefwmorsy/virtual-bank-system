@@ -2,16 +2,18 @@ spring:
   application:
     name: logging-service
   datasource:
-    url: jdbc:postgresql://logging-db:5432/logging_db
-    username: logging_user
-    password: logging_pass
+    # Changed host to localhost and DB name to loggingDB
+    url: jdbc:postgresql://localhost:5440/loggingDB
+    username: admin
+    password: password
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
 
   kafka:
-    bootstrap-servers: kafka-server:9092
+    # Assuming Kafka is also mapped to localhost
+    bootstrap-servers: localhost:9092
 
     consumer:
       group-id: microservices-logs
