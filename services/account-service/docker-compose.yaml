@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_accountDB
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: accountsDB
+    ports:
+      - "5438:5432"
+    volumes:
+      - pg_accounts_data:/var/lib/postgresql
+
+volumes:
+  pg_accounts_data:
