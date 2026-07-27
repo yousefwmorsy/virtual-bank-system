@@ -8,4 +8,6 @@ public class UserProfileResponse {
     private UUID userId;
     private String username;
     private String email;
+    private String firstName;
+    private String lastName;
 }
