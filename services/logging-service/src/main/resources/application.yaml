@@ -1,19 +1,20 @@
+server:
+  port: ${SERVER_PORT:8080}
+
 spring:
   application:
     name: logging-service
   datasource:
-    # Changed host to localhost and DB name to loggingDB
-    url: jdbc:postgresql://localhost:5440/loggingDB
-    username: admin
-    password: password
+    url: jdbc:postgresql://${DB_HOST:logging-db}:${DB_PORT:5432}/${DB_NAME:logging_db}
+    username: ${DB_USER:logging_user}
+    password: ${DB_PASS:logging_pass}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
 
   kafka:
-    # Assuming Kafka is also mapped to localhost
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka-server:9092}
 
     consumer:
       group-id: microservices-logs
@@ -24,3 +25,11 @@ spring:
       properties:
         spring.json.value.default.type: com.ejadainternship.vbank.logging_service.dtos.LogItemDTO
         spring.json.use.type.headers: false
+
+  eureka:
+    instance:
+      hostname: logging-service
+      prefer-ip-address: true
+    client:
+      service-url:
+        defaultZone: http://${EUREKA_HOST:service-registry}:${EUREKA_PORT:8761}/eureka/
