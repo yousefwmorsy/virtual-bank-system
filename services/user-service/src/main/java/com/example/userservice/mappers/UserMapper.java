@@ -16,14 +16,11 @@ public interface UserMapper {
     User toEntity(UserRegister userRegister);
 
     @Mapping(target = "userId", source = "id")
-    @Mapping(target = "username", source = "name")
     UserRegisterResponse toDto(User user);
 
     @Mapping(target = "userId", source = "id")
-    @Mapping(target = "username", source = "name")
     UserLoginResponse toLoginDto(User user);
 
     @Mapping(target = "userId", source = "id")
-    @Mapping(target = "username", source = "name")
     UserProfileResponse toProfileDto(User user);
 }

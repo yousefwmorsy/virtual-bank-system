@@ -5,6 +5,7 @@ import com.example.transactionservice.entities.Transaction;
 import com.example.transactionservice.enums.Status;
 import com.example.transactionservice.exception.AccountDoesNotExistException;
 import com.example.transactionservice.exception.InsufficientBalanceException;
+import com.example.transactionservice.exception.TransactionAlreadyCompletedException;
 import com.example.transactionservice.exception.TransactionDoesNotExistException;
 import com.example.transactionservice.mappers.TransactionMapper;
 import com.example.transactionservice.repositories.TransactionRepository;
@@ -56,6 +57,10 @@ public class TransactionService {
         Transaction transaction = transactionRepository.findById(executionRequest.getTransactionId())
                 .orElseThrow(() -> new TransactionDoesNotExistException(executionRequest.getTransactionId().toString()));
 
+        if(transaction.getStatus()==Status.COMPLETED){
+            throw new TransactionAlreadyCompletedException(
+                    "Transaction with id " + transaction.getId() + " has already been completed");
+        }
              TransferRequestDTO transferRequestDTO = new TransferRequestDTO(transaction.getFromAccountId().toString() , transaction.getToAccountId().toString() ,
                      transaction.getAmount());
 

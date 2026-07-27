@@ -1,28 +1,25 @@
 package com.example.userservice.controllers;
 
-
 import com.example.userservice.dtos.*;
-import com.example.userservice.models.User;
 import com.example.userservice.services.UserService;
 import jakarta.validation.Valid;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
 import java.util.UUID;
 
-@RestController("/users")
+@RestController
 @RequestMapping("/users")
-@Data
+@RequiredArgsConstructor
 public class UserController {
-    final private UserService userService;
 
+    private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserRegisterResponse> registerUser(@Valid @RequestBody UserRegister userRegister){
-            var registerResponse= userService.addUser(userRegister);
-            return  ResponseEntity.status(201).body(registerResponse);
+    public ResponseEntity<UserRegisterResponse> registerUser(@Valid @RequestBody UserRegister userRegister) {
+        var registerResponse = userService.addUser(userRegister);
+        return ResponseEntity.status(201).body(registerResponse);
     }
 
     @PostMapping("/login")
@@ -36,8 +33,4 @@ public class UserController {
         var profile = userService.getProfile(userId);
         return ResponseEntity.ok(profile);
     }
-
-
-
-
 }
