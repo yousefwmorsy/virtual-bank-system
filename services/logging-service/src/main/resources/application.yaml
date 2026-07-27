@@ -5,16 +5,16 @@ spring:
   application:
     name: logging-service
   datasource:
-    url: jdbc:postgresql://${DB_HOST:logging-db}:${DB_PORT:5432}/${DB_NAME:logging_db}
-    username: ${DB_USER:logging_user}
-    password: ${DB_PASS:logging_pass}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5440}/${DB_NAME:loggingDB}
+    username: ${DB_USER:admin}
+    password: ${DB_PASS:password}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
 
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka-server:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 
     consumer:
       group-id: microservices-logs
@@ -32,4 +32,4 @@ spring:
       prefer-ip-address: true
     client:
       service-url:
-        defaultZone: http://${EUREKA_HOST:service-registry}:${EUREKA_PORT:8761}/eureka/
+        defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8761}/eureka/
