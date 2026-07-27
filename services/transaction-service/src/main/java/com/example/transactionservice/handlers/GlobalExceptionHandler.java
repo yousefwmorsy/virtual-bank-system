@@ -2,10 +2,7 @@ package com.example.transactionservice.handlers;
 
 
 import com.example.transactionservice.dtos.ErrorResponseDTO;
-import com.example.transactionservice.exception.AccountDoesNotExistException;
-import com.example.transactionservice.exception.InsufficientBalanceException;
-import com.example.transactionservice.exception.TransactionAlreadyCompletedException;
-import com.example.transactionservice.exception.TransactionDoesNotExistException;
+import com.example.transactionservice.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -64,6 +61,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TransactionAlreadyCompletedException.class)
     public ResponseEntity<ErrorResponseDTO> handleTransactionAlreadyCompletedException(TransactionAlreadyCompletedException e) {
         HttpStatus status = HttpStatus.CONFLICT;
+        return ResponseEntity.status(status).body(
+                new ErrorResponseDTO(status.value(), status.getReasonPhrase(), e.getMessage())
+        );
+    }
+
+    @ExceptionHandler(NoTransactionsFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleNoTransactionsFoundException(NoTransactionsFoundException e) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
         return ResponseEntity.status(status).body(
                 new ErrorResponseDTO(status.value(), status.getReasonPhrase(), e.getMessage())
         );
