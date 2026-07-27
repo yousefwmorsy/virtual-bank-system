@@ -3,9 +3,7 @@ package com.example.transactionservice.services;
 import com.example.transactionservice.dtos.*;
 import com.example.transactionservice.entities.Transaction;
 import com.example.transactionservice.enums.Status;
-import com.example.transactionservice.exception.AccountDoesNotExistException;
-import com.example.transactionservice.exception.InsufficientBalanceException;
-import com.example.transactionservice.exception.TransactionDoesNotExistException;
+import com.example.transactionservice.exception.*;
 import com.example.transactionservice.mappers.TransactionMapper;
 import com.example.transactionservice.repositories.TransactionRepository;
 import lombok.Data;
@@ -19,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 
 @Service
@@ -56,6 +55,10 @@ public class TransactionService {
         Transaction transaction = transactionRepository.findById(executionRequest.getTransactionId())
                 .orElseThrow(() -> new TransactionDoesNotExistException(executionRequest.getTransactionId().toString()));
 
+        if(transaction.getStatus()==Status.COMPLETED){
+            throw new TransactionAlreadyCompletedException(
+                    "Transaction with id " + transaction.getId() + " has already been completed");
+        }
              TransferRequestDTO transferRequestDTO = new TransferRequestDTO(transaction.getFromAccountId().toString() , transaction.getToAccountId().toString() ,
                      transaction.getAmount());
 
@@ -114,6 +117,28 @@ public class TransactionService {
 
             throw e;
         }
+    }
+
+    public List<TransactionHistoryResponseDTO> getTransactionHistory(UUID accountId) {
+        List<Transaction> transactions = transactionRepository
+                .findByFromAccountIdOrToAccountIdOrderByInitiatedAtDesc(accountId, accountId);
+
+        if (transactions.isEmpty()) {
+            throw new NoTransactionsFoundException(
+                    "No transactions found for account ID " + accountId);
+        }
+
+        return transactions.stream()
+                .map(t -> {
+                    TransactionHistoryResponseDTO dto = transactionMapper.toHistoryResponse(t);
+                    BigDecimal signedAmount = t.getFromAccountId().equals(accountId)
+                            ? t.getAmount().negate()
+                            : t.getAmount();
+                    return new TransactionHistoryResponseDTO(
+                            dto.transactionId(), dto.fromAccountId(), dto.toAccountId(),
+                            signedAmount, dto.description(), dto.timestamp(), dto.deliveryStatus());
+                })
+                .toList();
     }
 
 
