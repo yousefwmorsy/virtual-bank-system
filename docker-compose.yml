@@ -126,6 +126,16 @@ services:
       EUREKA_PORT: ${EUREKA_PORT:-8761}
       SERVER_PORT: ${SERVER_PORT_LOGGING:-8080}
 
+  bff-service:
+    build: ./services/bff-service
+    profiles: [ "services", "all" ]
+    ports: [ "8085:${SERVER_PORT_BFF:-8080}" ]
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka-server:9092}
+      EUREKA_HOST: ${EUREKA_HOST:-service-registry}
+      EUREKA_PORT: ${EUREKA_PORT:-8761}
+      SERVER_PORT: ${SERVER_PORT_BFF:-8080}
+
   # ========== Kafka (profile: logging) ==========
   kafka-server:
     image: apache/kafka:latest
