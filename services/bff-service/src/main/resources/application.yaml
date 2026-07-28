@@ -1,3 +1,6 @@
+server:
+  port: ${SERVER_PORT:8090}
+
 spring:
   application:
     name: bff-service
@@ -9,3 +12,10 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.add.type.headers: false
+eureka:
+  instance:
+    hostname: bff-service
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8761}/eureka/
