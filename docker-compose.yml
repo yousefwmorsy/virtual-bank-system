@@ -91,6 +91,7 @@ services:
       DB_NAME: ${DB_USER_NAME:-user_db}
       DB_USER: ${DB_USER_USER:-user_user}
       DB_PASS: ${DB_USER_PASS:-user_pass}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka-server:9092}
       EUREKA_HOST: ${EUREKA_HOST:-service-registry}
       EUREKA_PORT: ${EUREKA_PORT:-8761}
       SERVER_PORT: ${SERVER_PORT_USER:-8088}
@@ -106,6 +107,7 @@ services:
       DB_NAME: ${DB_TRANSACTION_NAME:-transaction_db}
       DB_USER: ${DB_TRANSACTION_USER:-transaction_user}
       DB_PASS: ${DB_TRANSACTION_PASS:-transaction_pass}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka-server:9092}
       EUREKA_HOST: ${EUREKA_HOST:-service-registry}
       EUREKA_PORT: ${EUREKA_PORT:-8761}
       SERVER_PORT: ${SERVER_PORT_TRANSACTION:-8089}
