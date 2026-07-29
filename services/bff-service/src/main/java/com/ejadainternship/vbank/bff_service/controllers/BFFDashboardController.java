@@ -19,5 +19,5 @@ public class BFFDashboardController {
     @GetMapping("/dashboard/{userId}")
     public Mono<ResponseEntity<DashboardDTO>> getDashboard(@PathVariable String userId) {
         return bffDashboardService.getDashboard(userId);
-   }
+    }
 }
