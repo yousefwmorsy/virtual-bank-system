@@ -23,8 +23,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserLoginResponse> login(@Valid @RequestBody UserLogin userLogin) {
-        var loginResponse = userService.login(userLogin);
+    public ResponseEntity<UserLoginResponse> login(@RequestHeader("X-Client-Type") String clientType, @Valid @RequestBody UserLogin userLogin) {
+        var loginResponse = userService.login(userLogin, clientType);
         return ResponseEntity.ok(loginResponse);
     }
 
