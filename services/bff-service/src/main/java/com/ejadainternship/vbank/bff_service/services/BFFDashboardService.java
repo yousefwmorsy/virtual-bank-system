@@ -10,11 +10,14 @@
     import com.fasterxml.jackson.core.JsonProcessingException;
     import com.fasterxml.jackson.databind.ObjectMapper;
     import lombok.RequiredArgsConstructor;
+    import org.springframework.http.HttpStatus;
     import org.springframework.kafka.core.KafkaTemplate;
     import org.springframework.http.ResponseEntity;
+    import org.springframework.security.oauth2.jwt.Jwt;
     import org.springframework.stereotype.Service;
     import org.springframework.web.bind.annotation.PathVariable;
     import org.springframework.web.reactive.function.client.WebClientResponseException;
+    import org.springframework.web.server.ResponseStatusException;
     import reactor.core.publisher.Flux;
     import reactor.core.publisher.Mono;
 
@@ -30,17 +33,24 @@
         private final KafkaTemplate<String, LogItemDTO> kafkaTemplate;
         private final ObjectMapper objectMapper;
 
-        public Mono<ResponseEntity<DashboardDTO>> getDashboard(@PathVariable String userId) {
+        public Mono<ResponseEntity<DashboardDTO>> getDashboard(@PathVariable String userId, Jwt jwt, String authorization) {
             publish("", "Request");
-            Mono<UserDetailsDTO> userMono = userServiceClient.getProfileByUser(userId);
+
+            String tokenUserId = jwt.getClaim("userId");
+
+            if (!userId.equals(tokenUserId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            }
+
+            Mono<UserDetailsDTO> userMono = userServiceClient.getProfileByUser(userId, authorization);
 
             Mono<List<AccountDetailsDTO>> dashboardAccountsMono =
-                    accountServiceClient.getAccountsByUser(userId)
+                    accountServiceClient.getAccountsByUser(userId, authorization)
                             .flatMap(accounts ->
                                     Flux.fromIterable(accounts)
                                             .flatMap(account ->
                                                     transactionsServiceClient
-                                                            .getTransactionsHistoryByUser(account.accountId())
+                                                            .getTransactionsHistoryByUser(account.accountId(), authorization)
                                                             .onErrorResume(
                                                                     WebClientResponseException.NotFound.class,
                                                                     ex -> Mono.just(List.of())
