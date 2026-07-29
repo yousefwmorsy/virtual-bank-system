@@ -1,0 +1,9 @@
+# Use this workspace to collaborate
+workspace:
+  id: 725317b9-fdfe-4ad4-a9d2-f8fdf9d2b4b1
+
+localResources:
+  collections:
+    - ../docker-compose-collection/Virtual Bank Docker.postman_collection.json
+  environments:
+    - ../docker-compose-collection/Docker Env.postman_environment.json

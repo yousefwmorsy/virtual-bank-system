@@ -32,14 +32,14 @@ public class UserService {
         return userMapper.toDto(user);
     }
 
-    public UserLoginResponse login(UserLogin userLogin) {
+    public UserLoginResponse login(UserLogin userLogin, String clientType) {
         User user = userRepository.findByUsername(userLogin.getUsername())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password."));
         if (!passwordEncoder.matches(userLogin.getPassword(), user.getPasswordHash())) {
             throw new InvalidCredentialsException("Invalid username or password.");
         }
 
-        AuthResponse authResponse = authService.authenticate(userLogin.getUsername(), userLogin.getPassword());
+        AuthResponse authResponse = authService.authenticate(userLogin.getUsername(), userLogin.getPassword(), clientType);
         UserLoginResponse loginResponse = userMapper.toLoginDto(user);
         loginResponse.setAuthResponse(authResponse);
         return loginResponse;

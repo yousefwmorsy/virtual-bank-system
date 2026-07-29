@@ -1,0 +1,574 @@
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+index aa11a07..9960b28 100644
+--- a/.idea/compiler.xml
++++ b/.idea/compiler.xml
+@@ -12,6 +12,29 @@
+         </processorPath>
+         <module name="bff-service" />
+       </profile>
++      <profile name="Annotation profile for transaction-service" enabled="true">
++        <sourceOutputDir name="target/generated-sources/annotations" />
++        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
++        <outputRelativeToContentRoot value="true" />
++        <processorPath useClasspath="false">
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
++          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok-mapstruct-binding/0.2.0/lombok-mapstruct-binding-0.2.0.jar" />
++          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/4.1.0/spring-boot-configuration-processor-4.1.0.jar" />
++        </processorPath>
++        <module name="transaction-service" />
++      </profile>
++      <profile name="Annotation profile for user-service" enabled="true">
++        <sourceOutputDir name="target/generated-sources/annotations" />
++        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
++        <outputRelativeToContentRoot value="true" />
++        <processorPath useClasspath="false">
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
++          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
++          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/4.1.0/spring-boot-configuration-processor-4.1.0.jar" />
++        </processorPath>
++        <module name="user-service" />
++      </profile>
+     </annotationProcessing>
+   </component>
+   <component name="JavacSettings">
+diff --git a/services/user-service/pom.xml b/services/user-service/pom.xml
+index e5c1615..25f27e9 100644
+--- a/services/user-service/pom.xml
++++ b/services/user-service/pom.xml
+@@ -110,6 +110,10 @@
+             <groupId>org.springframework.kafka</groupId>
+             <artifactId>spring-kafka</artifactId>
+         </dependency>
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
++        </dependency>
+     </dependencies>
+ 
+     <build>
+diff --git a/services/user-service/src/main/java/com/example/userservice/config/JwkSourceConfig.java b/services/user-service/src/main/java/com/example/userservice/config/JwkSourceConfig.java
+new file mode 100644
+index 0000000..90202cc
+--- /dev/null
++++ b/services/user-service/src/main/java/com/example/userservice/config/JwkSourceConfig.java
+@@ -0,0 +1,37 @@
++package com.example.userservice.config;
++
++import com.nimbusds.jose.jwk.JWKSet;
++import com.nimbusds.jose.jwk.RSAKey;
++import com.nimbusds.jose.jwk.source.JWKSource;
++import com.nimbusds.jose.proc.SecurityContext;
++import org.springframework.beans.factory.annotation.Value;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++
++import java.security.interfaces.RSAPrivateKey;
++import java.security.interfaces.RSAPublicKey;
++
++@Configuration
++public class JwkSourceConfig {
++
++    @Value("${jwt.key-id:user-service-key-1}")
++    private String keyId;
++
++    @Bean
++    RSAKey rsaKey(RSAPublicKey publicKey, RSAPrivateKey privateKey) {
++        return new RSAKey.Builder(publicKey)
++                .privateKey(privateKey)
++                .keyID(keyId)
++                .build();
++    }
++
++    @Bean
++    JWKSet jwkSet(RSAKey rsaKey) {
++        return new JWKSet(rsaKey);
++    }
++
++    @Bean
++    JWKSource<SecurityContext> jwkSource(JWKSet jwkSet) {
++        return (selector, context) -> selector.select(jwkSet);
++    }
++}
+diff --git a/services/user-service/src/main/java/com/example/userservice/config/JwtEncoderConfig.java b/services/user-service/src/main/java/com/example/userservice/config/JwtEncoderConfig.java
+new file mode 100644
+index 0000000..5950dea
+--- /dev/null
++++ b/services/user-service/src/main/java/com/example/userservice/config/JwtEncoderConfig.java
+@@ -0,0 +1,17 @@
++package com.example.userservice.config;
++
++import com.nimbusds.jose.jwk.source.JWKSource;
++import com.nimbusds.jose.proc.SecurityContext;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.security.oauth2.jwt.JwtEncoder;
++import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
++
++@Configuration
++public class JwtEncoderConfig {
++
++    @Bean
++    JwtEncoder jwtEncoder(JWKSource<SecurityContext> jwkSource) {
++        return new NimbusJwtEncoder(jwkSource);
++    }
++}
+\ No newline at end of file
+diff --git a/services/user-service/src/main/java/com/example/userservice/config/KeyConfig.java b/services/user-service/src/main/java/com/example/userservice/config/KeyConfig.java
+new file mode 100644
+index 0000000..a572982
+--- /dev/null
++++ b/services/user-service/src/main/java/com/example/userservice/config/KeyConfig.java
+@@ -0,0 +1,42 @@
++package com.example.userservice.config;
++
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.core.io.ClassPathResource;
++
++import java.security.KeyFactory;
++import java.security.interfaces.RSAPrivateKey;
++import java.security.interfaces.RSAPublicKey;
++import java.security.spec.PKCS8EncodedKeySpec;
++import java.security.spec.X509EncodedKeySpec;
++import java.util.Base64;
++
++@Configuration
++public class KeyConfig {
++
++    @Bean
++    RSAPrivateKey privateKey() throws Exception {
++        String key = new String(new ClassPathResource("keys/private.pem").getInputStream().readAllBytes())
++                .replace("-----BEGIN PRIVATE KEY-----", "")
++                .replace("-----END PRIVATE KEY-----", "")
++                .replaceAll("\\s", "");
++        byte[] encoded = Base64.getDecoder().decode(key);
++        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
++        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
++        return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
++
++    }
++
++    @Bean
++    RSAPublicKey publicKey()  throws Exception {
++        String key = new String(new ClassPathResource("keys/public.pem").getInputStream().readAllBytes())
++                .replace("-----BEGIN PUBLIC KEY-----", "")
++                .replace("-----END PUBLIC KEY-----", "")
++                .replaceAll("\\s", "");
++        byte[] encoded = Base64.getDecoder().decode(key);
++        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
++        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
++        return (RSAPublicKey) keyFactory.generatePublic(keySpec);
++    }
++
++}
+diff --git a/services/user-service/src/main/java/com/example/userservice/config/SecurityConfig.java b/services/user-service/src/main/java/com/example/userservice/config/SecurityConfig.java
+index b1a9e19..6bf1f48 100644
+--- a/services/user-service/src/main/java/com/example/userservice/config/SecurityConfig.java
++++ b/services/user-service/src/main/java/com/example/userservice/config/SecurityConfig.java
+@@ -2,20 +2,58 @@ package com.example.userservice.config;
+ 
+ import org.springframework.context.annotation.Bean;
+ import org.springframework.context.annotation.Configuration;
++import org.springframework.security.authentication.AuthenticationManager;
++import org.springframework.security.authentication.AuthenticationProvider;
++import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
++import org.springframework.security.config.Customizer;
++import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+ import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
++import org.springframework.security.config.http.SessionCreationPolicy;
++import org.springframework.security.core.userdetails.UserDetailsService;
++import org.springframework.security.crypto.password.PasswordEncoder;
++import org.springframework.security.oauth2.jwt.JwtDecoder;
++import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+ import org.springframework.security.web.SecurityFilterChain;
++
++import java.security.interfaces.RSAPublicKey;
++
+ @Configuration
+ @EnableWebSecurity
+ public class SecurityConfig {
+     @Bean
+-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
++    AuthenticationProvider authenticationProvider(
++            UserDetailsService uds,
++            PasswordEncoder encoder) {
++
++        DaoAuthenticationProvider provider =
++                new DaoAuthenticationProvider(uds);
++
++        provider.setPasswordEncoder(encoder);
++
++        return provider;
++    }
++
++    @Bean
++    AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
++        return config.getAuthenticationManager();
++    }
++
++    @Bean
++    JwtDecoder jwtDecoder(RSAPublicKey publicKey) {
++        return NimbusJwtDecoder.withPublicKey(publicKey).build();
++    }
++
++    @Bean
++    public SecurityFilterChain filterChain(HttpSecurity http) {
+         http
+                 .csrf(csrf -> csrf.disable())
++                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                 .authorizeHttpRequests(auth -> auth
+-                        .requestMatchers("/users/register", "/users/login", "/users/{userId}/profile").permitAll()
++                        .requestMatchers("/auth/login", "/.well-known/jwks.json", "/users/login", "/users/register").permitAll()
+                         .anyRequest().authenticated()
+-                );
++                )
++                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+         return http.build();
+     }
+ }
+\ No newline at end of file
+diff --git a/services/user-service/src/main/java/com/example/userservice/controllers/AuthController.java b/services/user-service/src/main/java/com/example/userservice/controllers/AuthController.java
+new file mode 100644
+index 0000000..7f687ac
+--- /dev/null
++++ b/services/user-service/src/main/java/com/example/userservice/controllers/AuthController.java
+@@ -0,0 +1,25 @@
++package com.example.userservice.controllers;
++
++import com.example.userservice.dtos.AuthResponse;
++import com.example.userservice.dtos.UserLogin;
++import com.example.userservice.services.AuthService;
++import lombok.RequiredArgsConstructor;
++import org.springframework.http.ResponseEntity;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.RequestBody;
++import org.springframework.web.bind.annotation.RestController;
++
++@RestController
++@RequiredArgsConstructor
++public class AuthController {
++
++    private final AuthService authService;
++
++    @PostMapping("/auth/login")
++    public ResponseEntity<AuthResponse> login(@RequestBody UserLogin request) {
++        AuthResponse response = authService.authenticate(
++                request.getUsername(), request.getPassword()
++        );
++        return ResponseEntity.ok(response);
++    }
++}
+diff --git a/services/user-service/src/main/java/com/example/userservice/controllers/JwksController.java b/services/user-service/src/main/java/com/example/userservice/controllers/JwksController.java
+new file mode 100644
+index 0000000..4470426
+--- /dev/null
++++ b/services/user-service/src/main/java/com/example/userservice/controllers/JwksController.java
+@@ -0,0 +1,22 @@
++package com.example.userservice.controllers;
++
++import com.nimbusds.jose.jwk.JWKSet;
++import org.springframework.web.bind.annotation.GetMapping;
++import org.springframework.web.bind.annotation.RestController;
++
++import java.util.Map;
++
++@RestController
++public class JwksController {
++
++    private final JWKSet jwkSet;
++
++    public JwksController(JWKSet jwkSet) {
++        this.jwkSet = jwkSet;
++    }
++
++    @GetMapping("/.well-known/jwks.json")
++    public Map<String, Object> jwks() {
++        return jwkSet.toPublicJWKSet().toJSONObject();
++    }
++}
+\ No newline at end of file
+diff --git a/services/user-service/src/main/java/com/example/userservice/dtos/AuthResponse.java b/services/user-service/src/main/java/com/example/userservice/dtos/AuthResponse.java
+new file mode 100644
+index 0000000..3aac3ca
+--- /dev/null
++++ b/services/user-service/src/main/java/com/example/userservice/dtos/AuthResponse.java
+@@ -0,0 +1,4 @@
++package com.example.userservice.dtos;
++
++public record AuthResponse(String accessToken, String tokenType, long expiresIn) {
++}
+\ No newline at end of file
+diff --git a/services/user-service/src/main/java/com/example/userservice/dtos/UserLoginResponse.java b/services/user-service/src/main/java/com/example/userservice/dtos/UserLoginResponse.java
+index 575bebb..dded33d 100644
+--- a/services/user-service/src/main/java/com/example/userservice/dtos/UserLoginResponse.java
++++ b/services/user-service/src/main/java/com/example/userservice/dtos/UserLoginResponse.java
+@@ -8,4 +8,5 @@ import java.util.UUID;
+ public class UserLoginResponse {
+     private UUID userId;
+     private String username;
++    private AuthResponse authResponse;
+ }
+diff --git a/services/user-service/src/main/java/com/example/userservice/models/CustomUserDetails.java b/services/user-service/src/main/java/com/example/userservice/models/CustomUserDetails.java
+new file mode 100644
+index 0000000..a89b00f
+--- /dev/null
++++ b/services/user-service/src/main/java/com/example/userservice/models/CustomUserDetails.java
+@@ -0,0 +1,57 @@
++package com.example.userservice.models;
++
++import org.springframework.security.core.GrantedAuthority;
++import org.springframework.security.core.authority.SimpleGrantedAuthority;
++import org.springframework.security.core.userdetails.UserDetails;
++
++import java.util.Collection;
++import java.util.List;
++import java.util.UUID;
++
++public class CustomUserDetails implements UserDetails {
++
++    private final User user;
++
++    public CustomUserDetails(User user) {
++        this.user = user;
++    }
++
++    @Override
++    public String getUsername() {
++        return user.getUsername();
++    }
++
++    @Override
++    public String getPassword() {
++        return user.getPasswordHash();
++    }
++
++    @Override
++    public Collection<? extends GrantedAuthority> getAuthorities() {
++        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
++    }
++
++    @Override
++    public boolean isAccountNonExpired() {
++        return true;
++    }
++
++    @Override
++    public boolean isAccountNonLocked() {
++        return true;
++    }
++
++    @Override
++    public boolean isCredentialsNonExpired() {
++        return true;
++    }
++
++    @Override
++    public boolean isEnabled() {
++        return true;
++    }
++
++    public UUID getId() {
++        return user.getId();
++    }
++}
+\ No newline at end of file
+diff --git a/services/user-service/src/main/java/com/example/userservice/services/AuthService.java b/services/user-service/src/main/java/com/example/userservice/services/AuthService.java
+new file mode 100644
+index 0000000..771406b
+--- /dev/null
++++ b/services/user-service/src/main/java/com/example/userservice/services/AuthService.java
+@@ -0,0 +1,67 @@
++package com.example.userservice.services;
++
++import com.example.userservice.dtos.AuthResponse;
++import com.example.userservice.models.CustomUserDetails;
++import lombok.RequiredArgsConstructor;
++import org.springframework.beans.factory.annotation.Value;
++import org.springframework.security.authentication.AuthenticationManager;
++import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
++import org.springframework.security.core.Authentication;
++import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
++import org.springframework.security.oauth2.jwt.JwsHeader;
++import org.springframework.security.oauth2.jwt.JwtClaimsSet;
++import org.springframework.security.oauth2.jwt.JwtEncoder;
++import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
++import org.springframework.stereotype.Service;
++
++import java.time.Instant;
++import java.util.List;
++import java.util.stream.Collectors;
++
++@Service
++@RequiredArgsConstructor
++public class AuthService {
++
++    private final AuthenticationManager authenticationManager;
++    private final JwtEncoder jwtEncoder;
++
++    @Value("${jwt.issuer}")
++    private String issuer;
++
++    @Value("${jwt.audience:vbank-clients}")
++    private String audience;
++
++    @Value("${jwt.expiration-minutes:15}")
++    private long expirationMinutes;
++
++    public AuthResponse authenticate(String username, String password) {
++        Authentication authentication = authenticationManager.authenticate(
++                new UsernamePasswordAuthenticationToken(username, password)
++        );
++        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
++
++        Instant now = Instant.now();
++
++        JwtClaimsSet claims = JwtClaimsSet.builder()
++                .issuer(issuer)
++                .audience(List.of(audience))
++                .subject(user.getUsername())
++                .issuedAt(now)
++                .expiresAt(now.plusSeconds(expirationMinutes * 60))
++                .claim("userId", user.getId().toString())
++                .claim("roles", user.getAuthorities().stream()
++                        .map(Object::toString)
++                        .collect(Collectors.toList()))
++                .claim("azp", "vbank-client")
++                .build();
++
++        String token = jwtEncoder.encode(
++                JwtEncoderParameters.from(
++                        JwsHeader.with(SignatureAlgorithm.RS256).build(),
++                        claims
++                )
++        ).getTokenValue();
++
++        return new AuthResponse(token, "Bearer", expirationMinutes * 60);
++    }
++}
+diff --git a/services/user-service/src/main/java/com/example/userservice/services/CustomUserDetailsService.java b/services/user-service/src/main/java/com/example/userservice/services/CustomUserDetailsService.java
+new file mode 100644
+index 0000000..e027dbc
+--- /dev/null
++++ b/services/user-service/src/main/java/com/example/userservice/services/CustomUserDetailsService.java
+@@ -0,0 +1,28 @@
++package com.example.userservice.services;
++
++import com.example.userservice.models.CustomUserDetails;
++import com.example.userservice.models.User;
++import com.example.userservice.repositories.UserRepository;
++import lombok.RequiredArgsConstructor;
++import org.springframework.security.core.userdetails.UserDetails;
++import org.springframework.security.core.userdetails.UserDetailsService;
++import org.springframework.security.core.userdetails.UsernameNotFoundException;
++import org.springframework.stereotype.Service;
++
++@Service
++@RequiredArgsConstructor
++public class CustomUserDetailsService implements UserDetailsService {
++
++    private final UserRepository repository;
++
++    @Override
++    public UserDetails loadUserByUsername(String username)
++            throws UsernameNotFoundException {
++
++        User user = repository.findByUsername(username)
++                .orElseThrow(() ->
++                        new UsernameNotFoundException(username));
++
++        return new CustomUserDetails(user);
++    }
++}
+diff --git a/services/user-service/src/main/java/com/example/userservice/services/UserService.java b/services/user-service/src/main/java/com/example/userservice/services/UserService.java
+index 35a68a7..83bc006 100644
+--- a/services/user-service/src/main/java/com/example/userservice/services/UserService.java
++++ b/services/user-service/src/main/java/com/example/userservice/services/UserService.java
+@@ -18,6 +18,7 @@ import java.util.UUID;
+ public class UserService {
+ 
+     private final UserRepository userRepository;
++    private final AuthService authService;
+     private final UserMapper userMapper;
+     private final PasswordEncoder passwordEncoder;
+ 
+@@ -37,7 +38,11 @@ public class UserService {
+         if (!passwordEncoder.matches(userLogin.getPassword(), user.getPasswordHash())) {
+             throw new InvalidCredentialsException("Invalid username or password.");
+         }
+-        return userMapper.toLoginDto(user);
++
++        AuthResponse authResponse = authService.authenticate(userLogin.getUsername(), userLogin.getPassword());
++        UserLoginResponse loginResponse = userMapper.toLoginDto(user);
++        loginResponse.setAuthResponse(authResponse);
++        return loginResponse;
+     }
+ 
+     public UserProfileResponse getProfile(UUID userId) {
+diff --git a/services/user-service/src/main/resources/application.properties b/services/user-service/src/main/resources/application.properties
+index adc474f..4b1c229 100644
+--- a/services/user-service/src/main/resources/application.properties
++++ b/services/user-service/src/main/resources/application.properties
+@@ -17,4 +17,9 @@ eureka.client.service-url.defaultZone=http://${EUREKA_HOST:localhost}:${EUREKA_P
+ spring.kafka.bootstrap-servers=${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+ spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
+ spring.kafka.producer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer
+-spring.kafka.producer.properties.spring.json.add.type.headers=false
+\ No newline at end of file
++spring.kafka.producer.properties.spring.json.add.type.headers=false
++
++jwt.issuer: vbank-user-service
++jwt.audience: vbank-client
++jwt.expiration-minutes: 15
++jwt.key-id: user-service-key-1
+\ No newline at end of file
+diff --git a/services/user-service/src/main/resources/keys/private.pem b/services/user-service/src/main/resources/keys/private.pem
+new file mode 100644
+index 0000000..f8ea6a2
+--- /dev/null
++++ b/services/user-service/src/main/resources/keys/private.pem
+@@ -0,0 +1,28 @@
++-----BEGIN PRIVATE KEY-----
++MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDDpwT4Iyo2+mn3
++nJlWFi806CVu0UWZUdTH9OsKILcsNaqdEGUqGtqoATsnZmM8DhgZeNNdyY4z/jUM
++OJOQPDDJphWf6/V0bKSSioew8rmh5nBRQGGbg7g0KmCmJgUY4R8u4TM1xCb7g7qL
++vrRiTRd36w2+uVe7dtzVoBaPX7gFm9LRWJ6WsF+MjVCNeNpWx7FYr82XHOGiX57L
++bfUfXhZGma7DPm3Fy0kp7sFlVeg3Aeq5R4sMyU6phWOhTcfy3fxwHOzilPfe2Ebp
++BY+w6iw1NC8JX0CiVc9LznBiUMSQbP1YwQENAskW4K1DKWHTDpfWNBRXrFScAIN0
++k6tilp89AgMBAAECggEAAkd/FQpaGbsY7Rn0+4volPqFkHMmTpGybj36cO1HvhKf
++g1t5fSrVOKUP9cW6Xg7r6Kbbk6U/SBHhURgDkhKj1kMmz5MEH1WUejvTvuLCm224
++XzeMinwTVVX56m6qQbQGn6ga3sWHpCE7UMPA98hEkN+W7IUIeMQQTuj/rgRHbzCb
++D3pCJTBon1Z8P+Ik+DG+WZFazL/2CrDBbv7+aIz6huWmH2MRPPEFVJpfpoFlSazm
++RXwDTrbPhGF+F3HmeuViW7B4oOTl1RbKp62UEAjfkpVT9xsbyj7e+A65bUDLj9BP
++GpcjpmX66cg4Hlx0BlWk2a7i8KXnxrgnAWGNvizwkQKBgQDrO1+bTx7WqgTIWCoN
++oYyAyJulCHC729Z+F6ci4/3EN5NL8Un5MC4yOJLfOsM9qQUTlUoM46NrULsm/1X0
++sqDG2pB5zeamAzxqpNqI/Pz+gnmOjyzOnbSKBDzALX2/ZI05GoBavPzai7ZSWQzW
++Hbcdzr4iFldPcEA7HSJ6Y2OJLQKBgQDU7RWUKQVW9vZFQhznvi9gspo8S0oI0kce
++1F7NbBKQrfThz4FFB5NJJwGiiElWVH+Mjqw+1yd51EHgn5+nZOwb1gSbFUlvLG0W
++W18GI76L2YMwsSPYHf37tanKdQck3a306EhWQzoNF2bPeSPMdE7+MRq/Jg/pRVNH
++GGbW1awYUQKBgQClbHOnvNRrEdWbLqUkQN+WEX2jaXQeKFOHCQs4tizXuF2VonHr
++E77pAnAHHEQBMMOpKeuRdOSPq45xtk60booyTbIcdngld1EdjiFBBOjF8uuZHYbd
++Jnq4NJKkc1ljJ0tJRSHOrekDqAznjEhCq1MDW0jKn/t2mfIRoEOG3i45YQKBgQCA
++57d0pxDwgTq+2zOcqOsN45K0hfAgPw2HgJKUUqU6qdXjDzj3jYqBcvfuagvcE/PU
++KFvm/2KKwxHO51REhzjZ8UuAh/aZM5AnRNHWabVl/R0LUXKd2Cp3RJeyVf8pNnum
++FSoV70Upv80iNfiSQqfABAJpTqW7V5j/Jaq8zUcOwQKBgQCnG9LUXVdMoE2OAwuA
++bIy3hu8bhLpRbzIhUY+Wqtz5to1o40rciTnxU4D6Vxdbu8gIUWpN3cMRdFsV+BpZ
++6OvU6qcoNDasncxc+Xa5329V844M/pkwPe+W8jiGxBP4ufizLYb+YWymXobnqHKj
++83jTjQoeTW7oY3Tx7vf09aVZxw==
++-----END PRIVATE KEY-----
+diff --git a/services/user-service/src/main/resources/keys/public.pem b/services/user-service/src/main/resources/keys/public.pem
+new file mode 100644
+index 0000000..e6e8fac
+--- /dev/null
++++ b/services/user-service/src/main/resources/keys/public.pem
+@@ -0,0 +1,9 @@
++-----BEGIN PUBLIC KEY-----
++MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw6cE+CMqNvpp95yZVhYv
++NOglbtFFmVHUx/TrCiC3LDWqnRBlKhraqAE7J2ZjPA4YGXjTXcmOM/41DDiTkDww
++yaYVn+v1dGykkoqHsPK5oeZwUUBhm4O4NCpgpiYFGOEfLuEzNcQm+4O6i760Yk0X
++d+sNvrlXu3bc1aAWj1+4BZvS0VielrBfjI1QjXjaVsexWK/Nlxzhol+ey231H14W
++Rpmuwz5txctJKe7BZVXoNwHquUeLDMlOqYVjoU3H8t38cBzs4pT33thG6QWPsOos
++NTQvCV9AolXPS85wYlDEkGz9WMEBDQLJFuCtQylh0w6X1jQUV6xUnACDdJOrYpaf
++PQIDAQAB
++-----END PUBLIC KEY-----

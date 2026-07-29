@@ -13,9 +13,11 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MissingRequestHeaderException;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +26,9 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtEncoder jwtEncoder;
+
+    @Value("#{${wso2.client-mapping}}")
+    private Map<String, String> azpMapping;
 
     @Value("${jwt.issuer}")
     private String issuer;
@@ -34,7 +39,12 @@ public class AuthService {
     @Value("${jwt.expiration-minutes:15}")
     private long expirationMinutes;
 
-    public AuthResponse authenticate(String username, String password) {
+    public AuthResponse authenticate(String username, String password, String clientType) {
+        String azp = azpMapping.get(clientType != null ? clientType.toLowerCase() : null);
+        if (azp == null) {
+            throw new RuntimeException("Invalid or missing X-Client-Type");
+        }
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
         );
@@ -52,7 +62,7 @@ public class AuthService {
                 .claim("roles", user.getAuthorities().stream()
                         .map(Object::toString)
                         .collect(Collectors.toList()))
-                .claim("azp", "vbank-client")
+                .claim("azp", azp)
                 .build();
 
         String token = jwtEncoder.encode(
@@ -64,4 +74,5 @@ public class AuthService {
 
         return new AuthResponse(token, "Bearer", expirationMinutes * 60);
     }
+
 }
