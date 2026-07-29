@@ -10,6 +10,7 @@ import com.ejadainternship.vbank.account_service.models.AccountStatus;
 import com.ejadainternship.vbank.account_service.repositories.AccountRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,8 +30,11 @@ public class AccountService {
     }
 
     @Transactional
-    public MessageDTO transferAmount(TransferRequestDTO transferRequestDTO) {
+    public MessageDTO transferAmount(TransferRequestDTO transferRequestDTO, Jwt jwt) {
         Account fromAccount = getAccountById(transferRequestDTO.fromAccountId());
+        if(!fromAccount.getUserId().equals(jwt.getClaim("userId"))){
+            throw new RuntimeException("Restricted. Unauthorized account.");
+        }
         Account toAccount = getAccountById(transferRequestDTO.toAccountId());
         if (fromAccount.getBalance().compareTo(transferRequestDTO.amount()) < 0) {
             throw new InsufficientBalanceException();
@@ -46,10 +50,12 @@ public class AccountService {
         return accountRepository.findAllByUserId(userId).stream().map(AccountMapper::toAccountDetailsDTO).toList();
     }
 
-    public AccountDetailsDTO getAccount(String accountId) {
-        return AccountMapper.toAccountDetailsDTO(
-                getAccountById(accountId)
-        );
+    public AccountDetailsDTO getAccount(String accountId, Jwt jwt) {
+        Account account = getAccountById(accountId);
+        if(!account.getUserId().equals(jwt.getClaim("userId"))){
+            return null;
+        }
+        return AccountMapper.toAccountDetailsDTO(account);
     }
 
     public AccountSummaryDTO createAccount(CreateAccountRequestDTO accountRequestDTO) {

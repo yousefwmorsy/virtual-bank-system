@@ -4,6 +4,7 @@ import com.ejadainternship.vbank.bff_service.dtos.UserDetailsDTO;
 import com.ejadainternship.vbank.bff_service.exceptions.DownstreamServiceException;
 import com.ejadainternship.vbank.bff_service.exceptions.UserNotFoundException;
 import com.ejadainternship.vbank.bff_service.utils.ServiceResolver;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -22,11 +23,12 @@ public class UserServiceClient {
         this.serviceResolver = serviceResolver;
     }
 
-    public Mono<UserDetailsDTO> getProfileByUser(String userId) {
+    public Mono<UserDetailsDTO> getProfileByUser(String userId, String auth) {
         String baseUrl = serviceResolver.resolveBaseUrl("user-service");
 
         return webClient.get()
                 .uri(baseUrl + "/users/{userId}/profile", userId)
+                .header(HttpHeaders.AUTHORIZATION, auth)
                 .retrieve()
                 .onStatus(
                         status -> status.value() == 404,

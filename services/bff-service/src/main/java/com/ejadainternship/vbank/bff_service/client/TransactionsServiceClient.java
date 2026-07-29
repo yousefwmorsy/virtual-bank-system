@@ -3,6 +3,7 @@ package com.ejadainternship.vbank.bff_service.client;
 import com.ejadainternship.vbank.bff_service.dtos.AccountTransactionsDTO;
 import com.ejadainternship.vbank.bff_service.exceptions.DownstreamServiceException;
 import com.ejadainternship.vbank.bff_service.utils.ServiceResolver;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -21,13 +22,14 @@ public class TransactionsServiceClient {
         this.serviceResolver = serviceResolver;
     }
 
-    public Mono<List<AccountTransactionsDTO>> getTransactionsHistoryByUser(String accountId) {
+    public Mono<List<AccountTransactionsDTO>> getTransactionsHistoryByUser(String accountId, String auth) {
         String baseUrl = serviceResolver.resolveBaseUrl("transaction-service");
         return webClient.get()
                 .uri(baseUrl + "/accounts/{accountId}/transactions", accountId)
+                .header(HttpHeaders.AUTHORIZATION, auth)
                 .retrieve()
                 .onStatus(
-                        HttpStatusCode::isError,
+                        HttpStatusCode::is5xxServerError,
                         response -> Mono.error(new DownstreamServiceException("Transactions Service"))
                 )
                 .bodyToFlux(AccountTransactionsDTO.class)
