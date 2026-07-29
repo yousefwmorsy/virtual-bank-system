@@ -138,6 +138,19 @@ services:
       EUREKA_PORT: ${EUREKA_PORT:-8761}
       SERVER_PORT: ${SERVER_PORT_BFF:-8080}
 
+  wso2-gateway:
+    image: my-wso2-image:version2
+    container_name: vbank-wso2-gateway
+    profiles: ["services", "all"]
+    ports:
+      - "8243:8243"
+      - "8280:8280"
+      - "9443:9443"
+      - "9763:9763"
+    environment:
+      WORKING_DIRECTORY: /home/wso2carbon
+      WSO2_SERVER_HOME: /home/wso2carbon/wso2am-4.7.0
+
   # ========== Kafka (profile: logging) ==========
   kafka-server:
     image: apache/kafka:latest
