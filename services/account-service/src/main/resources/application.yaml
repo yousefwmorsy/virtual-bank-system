@@ -23,7 +23,11 @@ spring:
     level:
       feign: DEBUG
       com.netflix.loadbalancer: DEBUG
-
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://user-service:8088/.well-known/jwks.json
 account:
   number-generation-service:
     max-attempts: 10

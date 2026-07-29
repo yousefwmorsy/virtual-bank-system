@@ -10,6 +10,7 @@ import com.ejadainternship.vbank.account_service.models.AccountStatus;
 import com.ejadainternship.vbank.account_service.repositories.AccountRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,8 +30,11 @@ public class AccountService {
     }
 
     @Transactional
-    public MessageDTO transferAmount(TransferRequestDTO transferRequestDTO) {
+    public MessageDTO transferAmount(TransferRequestDTO transferRequestDTO, Jwt jwt) {
         Account fromAccount = getAccountById(transferRequestDTO.fromAccountId());
+        if(!fromAccount.getUserId().equals(jwt.getClaim("userId"))){
+            throw new RuntimeException("Restricted\n fromAcc: " + fromAccount.getUserId() + "\n toooAcc: " + jwt.getClaim("userId") );
+        }
         Account toAccount = getAccountById(transferRequestDTO.toAccountId());
         if (fromAccount.getBalance().compareTo(transferRequestDTO.amount()) < 0) {
             throw new InsufficientBalanceException();
