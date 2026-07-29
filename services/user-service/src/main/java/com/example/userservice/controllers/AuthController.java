@@ -1,7 +1,7 @@
 package com.example.userservice.controllers;
 
-import com.example.userservice.dtos.LoginRequest;
-import com.example.userservice.dtos.LoginResponse;
+import com.example.userservice.dtos.AuthResponse;
+import com.example.userservice.dtos.UserLogin;
 import com.example.userservice.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +16,9 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/auth/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        LoginResponse response = authService.authenticate(
-                request.username(), request.password()
+    public ResponseEntity<AuthResponse> login(@RequestBody UserLogin request) {
+        AuthResponse response = authService.authenticate(
+                request.getUsername(), request.getPassword()
         );
         return ResponseEntity.ok(response);
     }
