@@ -27,7 +27,7 @@ public class TransactionsServiceClient {
                 .uri(baseUrl + "/accounts/{accountId}/transactions", accountId)
                 .retrieve()
                 .onStatus(
-                        HttpStatusCode::isError,
+                        HttpStatusCode::is5xxServerError,
                         response -> Mono.error(new DownstreamServiceException("Transactions Service"))
                 )
                 .bodyToFlux(AccountTransactionsDTO.class)
