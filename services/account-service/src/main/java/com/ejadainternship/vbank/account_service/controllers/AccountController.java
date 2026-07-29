@@ -20,8 +20,8 @@ public class AccountController {
     }
 
     @GetMapping("/{account-id}")
-    public AccountDetailsDTO getAccount(@PathVariable("account-id") String accountId) {
-        return accountService.getAccount(accountId);
+    public AccountDetailsDTO getAccount(@AuthenticationPrincipal Jwt jwt, @PathVariable("account-id") String accountId) {
+        return accountService.getAccount(accountId, jwt);
     }
 
     @PostMapping

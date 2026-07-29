@@ -33,7 +33,7 @@ public class AccountService {
     public MessageDTO transferAmount(TransferRequestDTO transferRequestDTO, Jwt jwt) {
         Account fromAccount = getAccountById(transferRequestDTO.fromAccountId());
         if(!fromAccount.getUserId().equals(jwt.getClaim("userId"))){
-            throw new RuntimeException("Restricted\n fromAcc: " + fromAccount.getUserId() + "\n toooAcc: " + jwt.getClaim("userId") );
+            throw new RuntimeException("Restricted. Unauthorized account.");
         }
         Account toAccount = getAccountById(transferRequestDTO.toAccountId());
         if (fromAccount.getBalance().compareTo(transferRequestDTO.amount()) < 0) {
@@ -50,10 +50,12 @@ public class AccountService {
         return accountRepository.findAllByUserId(userId).stream().map(AccountMapper::toAccountDetailsDTO).toList();
     }
 
-    public AccountDetailsDTO getAccount(String accountId) {
-        return AccountMapper.toAccountDetailsDTO(
-                getAccountById(accountId)
-        );
+    public AccountDetailsDTO getAccount(String accountId, Jwt jwt) {
+        Account account = getAccountById(accountId);
+        if(!account.getUserId().equals(jwt.getClaim("userId"))){
+            return null;
+        }
+        return AccountMapper.toAccountDetailsDTO(account);
     }
 
     public AccountSummaryDTO createAccount(CreateAccountRequestDTO accountRequestDTO) {
