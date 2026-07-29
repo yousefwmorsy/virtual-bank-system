@@ -18,6 +18,7 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final AuthService authService;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -37,7 +38,11 @@ public class UserService {
         if (!passwordEncoder.matches(userLogin.getPassword(), user.getPasswordHash())) {
             throw new InvalidCredentialsException("Invalid username or password.");
         }
-        return userMapper.toLoginDto(user);
+
+        AuthResponse authResponse = authService.authenticate(userLogin.getUsername(), userLogin.getPassword());
+        UserLoginResponse loginResponse = userMapper.toLoginDto(user);
+        loginResponse.setAuthResponse(authResponse);
+        return loginResponse;
     }
 
     public UserProfileResponse getProfile(UUID userId) {

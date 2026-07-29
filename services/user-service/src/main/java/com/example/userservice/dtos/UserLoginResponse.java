@@ -8,4 +8,5 @@ import java.util.UUID;
 public class UserLoginResponse {
     private UUID userId;
     private String username;
+    private AuthResponse authResponse;
 }
