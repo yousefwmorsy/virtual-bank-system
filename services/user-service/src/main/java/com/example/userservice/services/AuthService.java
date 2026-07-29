@@ -1,6 +1,6 @@
 package com.example.userservice.services;
 
-import com.example.userservice.dtos.LoginResponse;
+import com.example.userservice.dtos.AuthResponse;
 import com.example.userservice.models.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +34,7 @@ public class AuthService {
     @Value("${jwt.expiration-minutes:15}")
     private long expirationMinutes;
 
-    public LoginResponse authenticate(String username, String password) {
+    public AuthResponse authenticate(String username, String password) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
         );
@@ -62,6 +62,6 @@ public class AuthService {
                 )
         ).getTokenValue();
 
-        return new LoginResponse(token, "Bearer", expirationMinutes * 60);
+        return new AuthResponse(token, "Bearer", expirationMinutes * 60);
     }
 }
