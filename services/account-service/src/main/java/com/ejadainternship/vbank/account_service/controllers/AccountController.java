@@ -25,7 +25,7 @@ public class AccountController {
     }
 
     @PostMapping
-    public AccountSummaryDTO createAccount(@Valid @RequestBody CreateAccountRequestDTO accountRequestDTO) {
-        return accountService.createAccount(accountRequestDTO);
+    public AccountSummaryDTO createAccount(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateAccountRequestDTO accountRequestDTO) {
+        return accountService.createAccount(accountRequestDTO, jwt);
     }
 }

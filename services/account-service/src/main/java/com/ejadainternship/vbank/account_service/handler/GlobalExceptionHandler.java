@@ -3,6 +3,7 @@ package com.ejadainternship.vbank.account_service.handler;
 import com.ejadainternship.vbank.account_service.dtos.ErrorResponseDTO;
 import com.ejadainternship.vbank.account_service.exceptions.AccountDoesNotExistException;
 import com.ejadainternship.vbank.account_service.exceptions.InsufficientBalanceException;
+import com.ejadainternship.vbank.account_service.exceptions.UnauthorizedUserException;
 import com.ejadainternship.vbank.account_service.exceptions.UserDoesNotExistException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -33,6 +34,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InsufficientBalanceException.class)
     public ResponseEntity<ErrorResponseDTO> handleInsufficientBalanceException(InsufficientBalanceException e) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return ResponseEntity.status(status).body(
+                new ErrorResponseDTO(status.value(), status.getReasonPhrase(), e.getMessage())
+        );
+    }
+
+    @ExceptionHandler(UnauthorizedUserException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUnauthorizedUser(UnauthorizedUserException e) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         return ResponseEntity.status(status).body(
                 new ErrorResponseDTO(status.value(), status.getReasonPhrase(), e.getMessage())

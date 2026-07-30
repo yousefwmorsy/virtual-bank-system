@@ -1,0 +1,714 @@
+{
+  "info": {
+    "_postman_id": "b93f7463-cd55-453a-9f8a-8600c1881775",
+    "name": "Virtual Bank",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "43051120"
+  },
+  "item": [
+    {
+      "name": "WSO2",
+      "item": [
+        {
+          "name": "VBank",
+          "item": [
+            {
+              "name": "Login VBank",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Client-Type",
+                    "value": "PORTAL",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\"username\": \"john.doe3\",\n\"password\": \"securePassword@123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{vbank-wso2}}",
+                  "protocol": "https",
+                  "host": [
+                    "{{vbank-wso2}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Dashboard VBank",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{apiKey}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Client-Type",
+                    "value": "PORTAL",
+                    "type": "text",
+                    "disabled": true
+                  }
+                ],
+                "url": {
+                  "raw": "https://{{vbank-wso2}}/{{user-id}}",
+                  "protocol": "https",
+                  "host": [
+                    "{{vbank-wso2}}"
+                  ],
+                  "path": [
+                    "{{user-id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Initiation VBank",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{apiKey}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\"fromAccountId\": \"4f98a26b-7f9e-493a-ae1f-36503a3b5fca\",\n\"toAccountId\": \"4f98a26b-7f9e-493a-ae1f-36503a3b5fca\",\n\"amount\": 10,\n\"description\": \"Transfer to checking account\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{vbank-wso2}}/initiation",
+                  "protocol": "https",
+                  "host": [
+                    "{{vbank-wso2}}"
+                  ],
+                  "path": [
+                    "initiation"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Execution VBank",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{apiKey}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\"transactionId\": \"728fdc27-4878-4e80-9d1e-768a7abc7b6a\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{vbank-wso2}}/execution",
+                  "protocol": "https",
+                  "host": [
+                    "{{vbank-wso2}}"
+                  ],
+                  "path": [
+                    "execution"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "item": [
+            {
+              "name": "Login WSO2",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Client-Type",
+                    "value": "PORTAL",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\"username\": \"john.doe3\",\n\"password\": \"securePassword@123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{wso2-base}}/login/v1",
+                  "protocol": "https",
+                  "host": [
+                    "{{wso2-base}}"
+                  ],
+                  "path": [
+                    "login",
+                    "v1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Register",
+          "item": [
+            {
+              "name": "Register WSO2",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\"username\": \"john.doe3\",\n\"password\": \"securePassword@123\",\n\"email\": \"john.doe3@example.com\",\n\"firstName\": \"John\",\n\"lastName\": \"Doe\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{wso2-base}}/register/v1",
+                  "protocol": "https",
+                  "host": [
+                    "{{wso2-base}}"
+                  ],
+                  "path": [
+                    "register",
+                    "v1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Transaction",
+          "item": [
+            {
+              "name": "Initiation WSO2",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{apiKey}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\"fromAccountId\": \"4f98a26b-7f9e-493a-ae1f-36503a3b5fca\",\n\"toAccountId\": \"4f98a26b-7f9e-493a-ae1f-36503a3b5fca\",\n\"amount\": 10,\n\"description\": \"Transfer to checking account\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{vbank-wso2}}/initiation",
+                  "protocol": "https",
+                  "host": [
+                    "{{vbank-wso2}}"
+                  ],
+                  "path": [
+                    "initiation"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Execution WSO2",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{apiKey}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\"transactionId\": \"728fdc27-4878-4e80-9d1e-768a7abc7b6a\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{wso2-base}}/transaction/v1/execution",
+                  "protocol": "https",
+                  "host": [
+                    "{{wso2-base}}"
+                  ],
+                  "path": [
+                    "transaction",
+                    "v1",
+                    "execution"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Dashboard",
+          "item": [
+            {
+              "name": "Dashboard WSO2",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{apiKey}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "https://{{wso2-base}}/dashboard/v1/{{user-id}}",
+                  "protocol": "https",
+                  "host": [
+                    "{{wso2-base}}"
+                  ],
+                  "path": [
+                    "dashboard",
+                    "v1",
+                    "{{user-id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Account",
+          "item": [
+            {
+              "name": "Account WSO2",
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Internal Services",
+      "item": [
+        {
+          "name": "User Service",
+          "item": [
+            {
+              "name": "Register",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\"username\": \"john.doe\",\n\"password\": \"securePassword@123\",\n\"email\": \"john.doe@example.com\",\n\"firstName\": \"John\",\n\"lastName\": \"Doe\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://{{users-service-url}}/users/register",
+                  "protocol": "http",
+                  "host": [
+                    "{{users-service-url}}"
+                  ],
+                  "path": [
+                    "users",
+                    "register"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Login",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\"username\": \"john.doe\",\n\"password\": \"securePassword@123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://{{users-service-url}}/users/login",
+                  "protocol": "http",
+                  "host": [
+                    "{{users-service-url}}"
+                  ],
+                  "path": [
+                    "users",
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get User Profile",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "disabled": false,
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://{{users-service-url}}/users/{{user-id}}/profile",
+                  "protocol": "http",
+                  "host": [
+                    "{{users-service-url}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{user-id}}",
+                    "profile"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Accounts Service",
+          "item": [
+            {
+              "name": "Transfer Between Accounts",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{apiKey}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\"fromAccountId\": \"cea060dd-509e-4e13-87c9-bff3e477167b\",\n\"toAccountId\": \"3a77f39d-9b7a-4fb5-a409-a6d91fa10f88\",\n\"amount\": 10\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://{{accounts-service-url}}/accounts/transfer",
+                  "protocol": "http",
+                  "host": [
+                    "{{accounts-service-url}}"
+                  ],
+                  "path": [
+                    "accounts",
+                    "transfer"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Account",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"userId\": \"e549e1a9-330a-49d1-b705-6aa7247d3bea\",\n  \"accountType\": \"SAVINGS\",\n  \"initialBalance\": 100\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://{{accounts-service-url}}/accounts",
+                  "protocol": "http",
+                  "host": [
+                    "{{accounts-service-url}}"
+                  ],
+                  "path": [
+                    "accounts"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get User Accounts",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{apiKey}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://{{accounts-service-url}}/users/{{user-id}}/accounts",
+                  "protocol": "http",
+                  "host": [
+                    "{{accounts-service-url}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{user-id}}",
+                    "accounts"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Transactions Service",
+          "item": [
+            {
+              "name": "Initiate Transaction",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\"fromAccountId\": \"c64638ea-21ae-4d8c-a54c-31c622bbce72\",\n\"toAccountId\": \"213b19d8-0609-4166-963b-a3e5f3a35e16\",\n\"amount\": 100,\n\"description\": \"Transfer to checking account\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://{{transactions-service-url}}/transactions/transfer/initiation",
+                  "protocol": "http",
+                  "host": [
+                    "{{transactions-service-url}}"
+                  ],
+                  "path": [
+                    "transactions",
+                    "transfer",
+                    "initiation"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Execute Transaction",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\"transactionId\": \"b5fa3f83-f4b0-4691-87a2-b9aae6af25bb\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://{{transactions-service-url}}/transactions/transfer/execution",
+                  "protocol": "http",
+                  "host": [
+                    "{{transactions-service-url}}"
+                  ],
+                  "path": [
+                    "transactions",
+                    "transfer",
+                    "execution"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Transaction History",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://{{transactions-service-url}}/accounts/{{account-id}}/transactions",
+                  "protocol": "http",
+                  "host": [
+                    "{{transactions-service-url}}"
+                  ],
+                  "path": [
+                    "accounts",
+                    "{{account-id}}",
+                    "transactions"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "BFF",
+          "item": [
+            {
+              "name": "BFF Dashboard",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\"name\": \"john.doe\",\n\"password\": \"securePassword@123\",\n\"email\": \"john.doe@example.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://{{bff-service-url}}/bff/dashboard/{{user-id}}",
+                  "protocol": "http",
+                  "host": [
+                    "{{bff-service-url}}"
+                  ],
+                  "path": [
+                    "bff",
+                    "dashboard",
+                    "{{user-id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "apiKey",
+      "value": ""
+    },
+    {
+      "key": "json_web_token_1chx",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_0196",
+      "secret": true
+    }
+  ]
+}
