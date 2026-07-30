@@ -4,6 +4,7 @@
 
 ### Base URLs
 ```
+WSO2 Gateway:        https://localhost:8243 (HTTPS) ⭐ PRIMARY ENTRY POINT
 User Service:        http://localhost:8088
 Account Service:     http://localhost:8080
 Transaction Service: http://localhost:8089
@@ -11,15 +12,154 @@ Logging Service:     http://localhost:8084
 BFF Service:         http://localhost:8085
 Service Registry:    http://localhost:8761
 Kafka UI:            http://localhost:8073
-WSO2 Gateway:        https://localhost:8243 (HTTPS)
 ```
 
 ### Common Headers
 ```
 Content-Type: application/json
-Authorization: Bearer <JWT_TOKEN>  (for protected endpoints)
-X-Client-Type: portal|mobile       (required for login)
+Authorization: Bearer <JWT_TOKEN>  (for protected endpoints, relayed by WSO2)
+X-Client-Type: portal|mobile       (required for login - CRITICAL)
 ```
+
+---
+
+## WSO2 API GATEWAY (PRIMARY ENTRY POINT)
+
+The **WSO2 Gateway** is the primary API gateway for all client requests. It:
+- Manages authentication and client application mapping
+- Routes requests to backend microservices
+- Attaches client context to all backend requests
+- Relays bearer tokens without modification
+- Controls API access based on client application
+
+### Client Applications
+
+WSO2 has two registered client applications:
+
+| Application | Header Value | Access Level | Description |
+|------------|--------------|--------------|-------------|
+| **VBank Portal** | `X-Client-Type: portal` | Full Access | Web/desktop application with access to all APIs |
+| **VBank Mobile** | `X-Client-Type: mobile` | Limited Access | Mobile application with access to VBank product only |
+
+**Important:** The client type is determined by the `X-Client-Type` header provided during login. WSO2 attaches this client information to all subsequent requests.
+
+### Token Management
+
+- **Token Format:** JWT Bearer Token
+- **Token Lifecycle:** Issued at login, included in all protected requests
+- **Token Relay:** WSO2 relays tokens to backend services without modification
+- **Client Attachment:** WSO2 attaches the client application identifier to each request
+- **Backend Access:** Backend services receive the original token plus client context from WSO2
+
+---
+
+## API PRODUCT: VBank
+
+The **VBank API Product** is a composite API that bundles multiple operations:
+- User login/registration
+- Transaction initiation and execution
+- Dashboard/account information
+- Available to: **Both** VBank Portal and VBank Mobile applications
+
+### Endpoints via WSO2 Gateway
+
+All endpoints below should be accessed through: `https://localhost:8243/vbank`
+
+#### 1. User Login (VBank Product)
+
+**Endpoint:** `POST /vbank/v1`
+
+**Description:** Authenticate user and receive JWT token. Client application is determined by `X-Client-Type` header.
+
+**Headers:**
+```
+Content-Type: application/json
+X-Client-Type: portal|mobile    (REQUIRED - determines application context)
+```
+
+**Request:**
+```json
+{
+  "username": "john.doe",
+  "password": "securePassword@123"
+}
+```
+
+**Client Application Mapping:**
+```
+X-Client-Type: portal  → VBank Portal Application (Full API Access)
+X-Client-Type: mobile  → VBank Mobile Application (VBank Product Access Only)
+```
+
+---
+
+#### 2. Get Dashboard (VBank Product)
+
+**Endpoint:** `GET /vbank/v1/{userId}`
+
+**Description:** Retrieve aggregated user dashboard (user profile + accounts + transactions)
+
+**Headers:**
+```
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
+
+**Path Parameters:**
+- `userId` (string, UUID): User ID
+
+---
+
+#### 3. Initiate Transaction (VBank Product)
+
+**Endpoint:** `POST /vbank/initiation`
+
+**Description:** Start a two-phase transfer process
+
+**Headers:**
+```
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "fromAccountId": "660e8400-e29b-41d4-a716-446655440001",
+  "toAccountId": "770e8400-e29b-41d4-a716-446655440002",
+  "amount": 50.00,
+  "description": "Transfer to checking account"
+}
+```
+
+---
+
+#### 4. Execute Transaction (VBank Product)
+
+**Endpoint:** `POST /vbank/execution`
+
+**Description:** Complete a previously initiated transaction
+
+**Headers:**
+```
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "transactionId": "880e8400-e29b-41d4-a716-446655440003"
+}
+```
+
+---
+
+## INDIVIDUAL BACKEND APIs (Direct Access - Not Recommended)
+
+⚠️ **Note:** These endpoints are available for direct access but should be accessed through the WSO2 Gateway instead for proper authentication and client application mapping.
+
+
 
 ---
 
@@ -424,47 +564,6 @@ All services return errors in this format:
 }
 ```
 
----
-
-## Authentication Flow Example
-
-### Step 1: Login
-```bash
-curl -X POST http://localhost:8088/auth/login \
-  -H "Content-Type: application/json" \
-  -H "X-Client-Type: portal" \
-  -d '{
-    "username": "jane_smith",
-    "password": "SecurePass123!"
-  }'
-```
-
-**Response:**
-```json
-{
-  "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "tokenType": "Bearer",
-  "expiresIn": 900
-}
-```
-
-### Step 2: Use Token for Protected Request
-```bash
-curl -X GET http://localhost:8080/accounts/660e8400-e29b-41d4-a716-446655440001 \
-  -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
-```
-
-**Response:**
-```json
-{
-  "id": "660e8400-e29b-41d4-a716-446655440001",
-  "accountNumber": "ACC1234567890",
-  "balance": 1000.00,
-  ...
-}
-```
-
-## Environment Variables
 
 ### Database Configuration
 ```bash
