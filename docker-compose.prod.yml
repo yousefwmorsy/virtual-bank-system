@@ -1,16 +1,25 @@
 # ============================================================
-# VBank Microservices - Docker Compose
+# VBank Microservices - Docker Compose (Production/CD)
 # ============================================================
+# Uses pre-built images from GitHub Container Registry (ghcr.io)
+# instead of building locally. Useful for CD deployments.
+#
 # Profiles available:
 #   (default)    - DBs + Service Registry (infrastructure only)
 #   --profile services  - All microservice applications
 #   --profile logging - Kafka + Kafbat UI
-# ============================================================
+#   --profile all - Everything
+#
 # Usage:
-#   docker compose up                                    # Infrastructure only
-#   docker compose --profile services up                 # Services + infra
-#   docker compose --profile logging up                # Kafka + infra
-#   docker compose --profile all up                      # Everything
+#   docker compose -f docker-compose.prod.yml up                                    # Infrastructure only
+#   docker compose -f docker-compose.prod.yml --profile services up                 # Services + infra
+#   docker compose -f docker-compose.prod.yml --profile logging up                # Kafka + infra
+#   docker compose -f docker-compose.prod.yml --profile all up                      # Everything
+#
+# Environment Variables:
+#   IMAGE_TAG - Tag for images (default: latest). Set to specific SHA for immutable deployments.
+#   GHCR_USERNAME - Optional: For private registries (username)
+#   GHCR_PASSWORD - Optional: For private registries (token/password)
 # ============================================================
 
 services:
@@ -55,7 +64,7 @@ services:
 
   # ========== Service Discovery ==========
   service-registry:
-    build: ./services/service-registry
+    image: ghcr.io/${GHCR_OWNER:-yousefwmorsy}/service-registry:${IMAGE_TAG:-latest}
     container_name: vbank-service-registry
     ports: ["8761:${SERVER_PORT_REGISTRY:-8761}"]
     environment:
@@ -65,7 +74,7 @@ services:
 
   # ========== Microservice Applications (profile: services) ==========
   account-service:
-    build: ./services/account-service
+    image: ghcr.io/${GHCR_OWNER:-yousefwmorsy}/account-service:${IMAGE_TAG:-latest}
     profiles: ["services", "all"]
     depends_on: [account-db, service-registry]
     ports: ["8081:${SERVER_PORT_ACCOUNT:-8080}"]
@@ -81,7 +90,7 @@ services:
       SERVER_PORT: ${SERVER_PORT_ACCOUNT:-8080}
 
   user-service:
-    build: ./services/user-service
+    image: ghcr.io/${GHCR_OWNER:-yousefwmorsy}/user-service:${IMAGE_TAG:-latest}
     profiles: ["services", "all"]
     depends_on: [user-db, service-registry]
     ports: ["8082:${SERVER_PORT_USER:-8088}"]
@@ -97,7 +106,7 @@ services:
       SERVER_PORT: ${SERVER_PORT_USER:-8088}
 
   transaction-service:
-    build: ./services/transaction-service
+    image: ghcr.io/${GHCR_OWNER:-yousefwmorsy}/transaction-service:${IMAGE_TAG:-latest}
     profiles: ["services", "all"]
     depends_on: [transaction-db, service-registry]
     ports: ["8083:${SERVER_PORT_TRANSACTION:-8089}"]
@@ -113,7 +122,7 @@ services:
       SERVER_PORT: ${SERVER_PORT_TRANSACTION:-8089}
 
   logging-service:
-    build: ./services/logging-service
+    image: ghcr.io/${GHCR_OWNER:-yousefwmorsy}/logging-service:${IMAGE_TAG:-latest}
     profiles: ["services", "all"]
     depends_on: [logging-db]
     ports: ["8084:${SERVER_PORT_LOGGING:-8080}"]
@@ -129,9 +138,9 @@ services:
       SERVER_PORT: ${SERVER_PORT_LOGGING:-8080}
 
   bff-service:
-    build: ./services/bff-service
-    profiles: [ "services", "all" ]
-    ports: [ "8085:${SERVER_PORT_BFF:-8080}" ]
+    image: ghcr.io/${GHCR_OWNER:-yousefwmorsy}/bff-service:${IMAGE_TAG:-latest}
+    profiles: ["services", "all"]
+    ports: ["8085:${SERVER_PORT_BFF:-8080}"]
     environment:
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka-server:9092}
       EUREKA_HOST: ${EUREKA_HOST:-service-registry}
