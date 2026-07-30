@@ -1,0 +1,36 @@
+package com.example.userservice.controllers;
+
+import com.example.userservice.dtos.*;
+import com.example.userservice.services.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/users")
+@RequiredArgsConstructor
+public class UserController {
+
+    private final UserService userService;
+
+    @PostMapping("/register")
+    public ResponseEntity<UserRegisterResponse> registerUser(@Valid @RequestBody UserRegister userRegister) {
+        var registerResponse = userService.addUser(userRegister);
+        return ResponseEntity.status(201).body(registerResponse);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<UserLoginResponse> login(@RequestHeader("X-Client-Type") String clientType, @Valid @RequestBody UserLogin userLogin) {
+        var loginResponse = userService.login(userLogin, clientType);
+        return ResponseEntity.ok(loginResponse);
+    }
+
+    @GetMapping("/{userId}/profile")
+    public ResponseEntity<UserProfileResponse> getProfile(@PathVariable UUID userId) {
+        var profile = userService.getProfile(userId);
+        return ResponseEntity.ok(profile);
+    }
+}

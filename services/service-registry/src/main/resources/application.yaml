@@ -1,13 +1,13 @@
+server:
+  port: ${SERVER_PORT:8761}
+
 spring:
   application:
     name: service-registry
 
-server:
-  port: 8761
-
 eureka:
   instance:
-    hostname: localhost
+    hostname: service-registry
 
   client:
     fetch-registry: false
