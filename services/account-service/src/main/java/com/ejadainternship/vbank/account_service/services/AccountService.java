@@ -3,6 +3,7 @@ package com.ejadainternship.vbank.account_service.services;
 import com.ejadainternship.vbank.account_service.dtos.*;
 import com.ejadainternship.vbank.account_service.exceptions.AccountDoesNotExistException;
 import com.ejadainternship.vbank.account_service.exceptions.InsufficientBalanceException;
+import com.ejadainternship.vbank.account_service.exceptions.UnauthorizedUserException;
 import com.ejadainternship.vbank.account_service.exceptions.UserDoesNotExistException;
 import com.ejadainternship.vbank.account_service.mapper.AccountMapper;
 import com.ejadainternship.vbank.account_service.models.Account;
@@ -33,7 +34,7 @@ public class AccountService {
     public MessageDTO transferAmount(TransferRequestDTO transferRequestDTO, Jwt jwt) {
         Account fromAccount = getAccountById(transferRequestDTO.fromAccountId());
         if(!fromAccount.getUserId().equals(jwt.getClaim("userId"))){
-            throw new RuntimeException("Restricted. Unauthorized account.");
+            throw new UnauthorizedUserException("Restricted. Unauthorized account.");
         }
         Account toAccount = getAccountById(transferRequestDTO.toAccountId());
         if (fromAccount.getBalance().compareTo(transferRequestDTO.amount()) < 0) {
@@ -58,7 +59,10 @@ public class AccountService {
         return AccountMapper.toAccountDetailsDTO(account);
     }
 
-    public AccountSummaryDTO createAccount(CreateAccountRequestDTO accountRequestDTO) {
+    public AccountSummaryDTO createAccount(CreateAccountRequestDTO accountRequestDTO, Jwt jwt) {
+        if(!accountRequestDTO.userId().equals(jwt.getClaim("userId"))){
+            throw new UnauthorizedUserException("Restricted. Unauthorized account.");
+        }
         if (userService.verifyUser(accountRequestDTO.userId())) {
             String accountNumber = accountNumberGenerationService.generate();
             Account newAccount = Account.builder()
