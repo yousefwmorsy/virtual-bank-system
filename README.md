@@ -1,4 +1,4 @@
-# VBank Microservices - Comprehensive Documentation
+# VBank Microservices - Services Documentation
 
 ## Overview
 VBank is a microservices-based virtual banking system built with Spring Boot, featuring 6 microservices orchestrated through Eureka Service Registry, with event-driven communication via Apache Kafka and PostgreSQL for data persistence.
