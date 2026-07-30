@@ -2,7 +2,7 @@ name: Build and publish Docker images
 
 on:
   push:
-    branches: [ "main", "dev" ]
+    branches: [ "master", "dev" ]
   workflow_dispatch:
     inputs:
       service:
@@ -37,17 +37,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push image (sha)
-        uses: docker/build-push-action@v4
-        with:
-          context: ./services/${{ matrix.service }}
-          file: ./services/${{ matrix.service }}/Dockerfile
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.service }}:${{ github.sha }}
-
-      - name: Tag and push latest
-        if: github.ref == 'refs/heads/main'
+      - name: Build and push image
         uses: docker/build-push-action@v4
         with:
           context: ./services/${{ matrix.service }}
